@@ -14,31 +14,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 package main
 
-import (
-	"context"
-	"log"
-	"os"
-	"time"
-)
+import "net/http"
 
-func main() {
-	log.Println("Hello, server!")
+func SongHandler(w http.ResponseWriter, r *http.Request) {
 
-	// Setup server
-	srv := setup()
-	// Launch server
-	launch(&srv)
-
-	// Setup shutdown context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
-	defer cancel()
-
-	// Shutdown server
-	shutdown(&srv, ctx)
-
-	log.Println("Goodbye!")
-	os.Exit(0)
 }

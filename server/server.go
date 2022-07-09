@@ -14,31 +14,47 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 package main
 
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
-func main() {
-	log.Println("Hello, server!")
+func setup() http.Server {
+	r := mux.NewRouter()
+	r.HandleFunc("/api/songs/{id}", SongHandler).Methods("GET", "POST")
+	return http.Server{
+		Handler:      r,
+		Addr:         "",
+		WriteTimeout: time.Duration(10) * time.Second,
+		ReadTimeout:  time.Duration(10) * time.Second,
+	}
+}
 
-	// Setup server
-	srv := setup()
-	// Launch server
-	launch(&srv)
+func launch(srv *http.Server) {
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Fatalf("Failed to launch server: %v\n", err)
+		}
+	}()
 
-	// Setup shutdown context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
-	defer cancel()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
-	// Shutdown server
-	shutdown(&srv, ctx)
+	<-c
+}
 
-	log.Println("Goodbye!")
-	os.Exit(0)
+func shutdown(srv *http.Server, ctx context.Context) {
+	go func() {
+		srv.Shutdown(ctx)
+	}()
+
+	<-ctx.Done()
 }
