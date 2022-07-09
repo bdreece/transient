@@ -1,7 +1,7 @@
 <template>
   <h1 class="text-3xl heading my-4 flex justify-center">Upload</h1>
   <div class="flex justify-center">
-    <div class="flex-initial card w-96 bg-base-300 shadow-xl">
+    <div class="flex-initial card w-96 my-4 bg-base-300 shadow-xl">
       <div class="card-body">
         <div class="form-control">
           <label class="label">
@@ -45,7 +45,7 @@
             accept="audio/*"
             placeholder="Upload audio file here"
             class="input input-bordered w-full max-w-xs"
-            @change="handleFileChange($event, index)"
+            @change="handleFileChange($event.target)"
             required
           />
           <label class="label">
@@ -77,31 +77,58 @@
         </div>
       </div>
       <div class="card-actions justify-center mb-2">
-        <button v-show="numFiles > 0" class="btn btn-primary">Upload</button>
+        <button
+          v-show="file.size > 0"
+          class="btn btn-primary"
+          @click="handleUpload"
+        >
+          Upload
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import cuid from 'cuid';
 export default {
   data() {
     return {
       trackName: '',
       artistName: '',
-      numFiles: 0,
-      files: null,
+      file: {},
       expirationDate: 'YYYY-MM-DD',
       maxPlays: 1,
     };
   },
   methods: {
-    handleFileChange(event, _index) {
-      this.files = event?.target?.files;
-      this.numFiles = event?.target?.files.length;
+    handleFileChange(target: HTMLInputElement) {
+      const files = target.files;
+      if (files) {
+        this.file = files[0];
+      }
     },
-    handleUpload() {
+    async handleUpload() {
       // TODO: implement when backend is finished
+      const id = cuid.slug();
+      const response = await fetch(`/api/songs/${id}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          trackName: this.trackName,
+          artistName: this.artistName,
+          audio: await (<File>this.file).arrayBuffer(),
+          format: (<File>this.file).type,
+          expiration: this.expirationDate,
+          maxPlays: this.maxPlays,
+        }),
+      });
+      if (response.ok) {
+        // TODO: File uploaded successfully, display success modal
+        console.log('File uploaded successfully');
+      } else {
+        // TODO: File failed to upload, display failure modal
+        console.log('File failed to upload');
+      }
     },
   },
 };
