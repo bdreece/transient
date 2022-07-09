@@ -29,7 +29,7 @@ import (
 
 func setup() http.Server {
 	r := mux.NewRouter()
-	r.HandleFunc("/api/songs/{id}", SongHandler).Methods("GET", "POST")
+	r.Handle("/api/songs/{id}", NewSongHandler()).Methods("GET", "POST")
 	return http.Server{
 		Handler:      r,
 		Addr:         "",

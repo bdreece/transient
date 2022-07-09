@@ -16,8 +16,59 @@
  */
 package main
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+	"time"
 
-func SongHandler(w http.ResponseWriter, r *http.Request) {
+	"github.com/gorilla/mux"
+)
 
+type Song struct {
+	TrackName  string
+	ArtistName string
+	Audio      []byte
+	Format     string
+	Expiration time.Time
+	MaxPlays   int
+}
+
+func NewSong() (s Song) { return }
+
+type SongHandler struct {
+	bag Bag[Song]
+}
+
+func NewSongHandler() *SongHandler {
+	return &SongHandler{
+		bag: NewBag[Song](),
+	}
+}
+
+func (h *SongHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	switch r.Method {
+	case "POST":
+		var rawBody []byte
+		_, err := r.Body.Read(rawBody)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		song := NewSong()
+		json.Unmarshal(rawBody, &song)
+
+		h.bag.Push(id, song.MaxPlays, &song)
+		w.WriteHeader(http.StatusOK)
+	case "GET":
+		song := h.bag.Pop(id)
+		if song == nil {
+			w.WriteHeader(http.StatusNoContent)
+		}
+		bytes, err := json.Marshal(song)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write(bytes)
+	}
 }
