@@ -23,7 +23,7 @@ export default {
   <div class="drawer">
     <input id="nav-toggle" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content flex flex-col">
-      <div class="navbar bg-base-300">
+      <div class="navbar bg-base-300 sticky top-0 z-50">
         <div class="flex-none">
           <label for="nav-toggle" class="btn btn-square btn-ghost">
             <svg
@@ -83,6 +83,7 @@ export default {
           </ul>
         </div>
       </div>
+      <router-view />
     </div>
     <div class="drawer-side">
       <label for="nav-toggle" class="drawer-overlay" />
