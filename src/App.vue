@@ -42,8 +42,7 @@ export default {
 
 <template>
   <div :data-theme="theme">
-    <navbar class="flex-0" />
-    <router-view class="flex-1" />
-    <foot class="flex-0" />
+    <navbar />
+    <foot />
   </div>
 </template>
