@@ -23,7 +23,7 @@ export default {
   <div class="drawer">
     <input id="nav-toggle" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content flex flex-col">
-      <div class="navbar bg-base-100">
+      <div class="navbar bg-base-300">
         <div class="flex-none">
           <label for="nav-toggle" class="btn btn-square btn-ghost">
             <svg
@@ -65,7 +65,7 @@ export default {
           </label>
           <ul
             tabindex="0"
-            class="dropdown-content menu p-2 shadow bg-base-300 rounded-box w-52"
+            class="dropdown-content menu mt-4 p-2 shadow bg-base-300 rounded-box w-52"
           >
             <li>
               <div class="form-control">
@@ -86,7 +86,7 @@ export default {
     </div>
     <div class="drawer-side">
       <label for="nav-toggle" class="drawer-overlay" />
-      <ul class="menu p-4 overflow-y-auto w-80 bg-base-100">
+      <ul class="menu p-4 overflow-y-auto w-80 bg-base-300">
         <li>
           <router-link class="btn btn-ghost" to="/">
             <i class="fa-solid fa-house"></i>

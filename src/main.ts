@@ -16,9 +16,6 @@
  */
 import { createApp } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faUserSecret } from '@fortawesome/free-solid-svg-icons';
 
 import App from './App.vue';
 import Index from './pages/Index.vue';
@@ -38,14 +35,9 @@ const router = createRouter({
   routes,
 });
 
-/* add icons to the library */
-library.add(faUserSecret);
-
-/* add font awesome icon component */
 const app = createApp(App);
 
 app.config.unwrapInjectedRef = true;
-app.component('font-awesome-icon', FontAwesomeIcon);
 app.use(router);
 
 app.mount('#app');
