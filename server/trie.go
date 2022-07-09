@@ -8,8 +8,8 @@ type Node[T any] struct {
 	Value *T
 }
 
-func newNode[T any](leaf bool, value *T) Node[T] {
-	return Node[T]{
+func newNode[T any](leaf bool, value *T) *Node[T] {
+	return &Node[T]{
 		Edges: make([]Edge[T], 0),
 		Leaf:  leaf,
 		Value: value,
@@ -36,11 +36,46 @@ func (n Node[T]) getNextEdgeInexact(remaining string) *Edge[T] {
 
 type Edge[T any] struct {
 	Label  string
-	Target Node[T]
+	Target *Node[T]
+}
+
+func newEdge[T any](label string, target *Node[T]) Edge[T] {
+	return Edge[T]{
+		Label:  label,
+		Target: target,
+	}
+}
+
+func (e *Edge[T]) branchEdge(remaining string) *Edge[T] {
+	var i int
+	for i = range e.Label {
+		if e.Label[i] != remaining[i] {
+			break
+		}
+	}
+
+	trunkEdge := newEdge(e.Label[i:], e.Target)
+	branchEdge := newEdge(remaining[i:], newNode[T](true, nil))
+
+	newLabel := e.Label[:i]
+	newTarget := newNode[T](false, nil)
+	newTarget.Edges = append(newTarget.Edges, trunkEdge, branchEdge)
+
+	e.Label = newLabel
+	e.Target = newTarget
+	return &branchEdge
+}
+
+type RadixTrieError struct {
+	string
+}
+
+func (e RadixTrieError) Error() string {
+	return e.string
 }
 
 type RadixTrie[T any] struct {
-	root Node[T]
+	root *Node[T]
 }
 
 func NewRadixTrie[T any]() RadixTrie[T] {
@@ -51,11 +86,11 @@ func NewRadixTrie[T any]() RadixTrie[T] {
 
 func (t RadixTrie[T]) Get(key string) *T {
 	elementsFound := 0
-	cursor := &t.root
+	cursor := t.root
 	for cursor != nil && !cursor.Leaf && elementsFound < len(key) {
 		nextEdge := cursor.getNextEdgeExact(key[elementsFound:])
 		if nextEdge != nil {
-			cursor = &nextEdge.Target
+			cursor = nextEdge.Target
 			elementsFound += len(nextEdge.Label)
 		} else {
 			cursor = nil
@@ -68,22 +103,36 @@ func (t RadixTrie[T]) Get(key string) *T {
 	}
 }
 
-func (t *RadixTrie[T]) Set(key string, val *T) {
+// TODO: Branch on insert "box" when "boxer" exists
+// TODO: Ensure insert "boxer" branches properly when "box" exists
+func (t *RadixTrie[T]) Set(key string, val *T) error {
 	elementsFound := 0
-	cursor := &t.root
-	for cursor != nil && !cursor.Leaf && elementsFound < len(key) {
-		nextEdge := cursor.getNextEdgeInexact(key[elementsFound:])
+	cursor := t.root
+	for !cursor.Leaf && elementsFound < len(key) {
+		remaining := key[elementsFound:]
+		nextEdge := cursor.getNextEdgeInexact(remaining)
 		if nextEdge != nil {
-			if strings.HasPrefix(key[elementsFound:], nextEdge.Label) {
-				cursor = &nextEdge.Target
+			// Something matched
+			if strings.HasPrefix(remaining, nextEdge.Label) {
+				// Whole label matched, advance in trie
+				cursor = nextEdge.Target
 				elementsFound += len(nextEdge.Label)
 			} else {
-				// TODO: split edge
+				// Some label matched, branch existing edge
+				branchEdge := nextEdge.branchEdge(remaining)
+				branchEdge.Target.Value = val
+				return nil
 			}
 		} else {
-			cursor = nil
+			// Nothing matched, create new edge
+			nextNode := newNode(true, val)
+			cursor.Edges = append(cursor.Edges, newEdge(remaining, nextNode))
+			return nil
 		}
 	}
+	// Leaf node, replace existing value
+	cursor.Value = val
+	return nil
 }
 
 func (t *RadixTrie[T]) Del(key string) *T {
