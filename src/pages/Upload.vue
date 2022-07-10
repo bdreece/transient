@@ -109,24 +109,30 @@ export default {
     },
     async handleUpload() {
       const id = cuid.slug();
-      const response = await fetch(`http://${API_HOST}/api/songs/${id}`, {
+      const optResponse = await fetch(`http://${API_HOST}/api/songs/${id}`, {
         method: 'OPTIONS',
         headers: {
           'Access-Control-Request-Method': 'POST',
           Origin: origin,
         },
-        body: JSON.stringify({
-          trackName: this.trackName,
-          artistName: this.artistName,
-          audio: await (<File>this.file).arrayBuffer(),
-          format: (<File>this.file).type,
-          expiration: this.expirationDate,
-          maxPlays: this.maxPlays,
-        }),
       });
-      if (response.ok) {
+      if (optResponse.ok) {
         // TODO: File uploaded successfully, display success modal
         console.log('File uploaded successfully');
+        const response = await fetch(`https://${API_HOST}/api/songs/${id}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            trackName: this.trackName,
+            artistName: this.artistName,
+            audio: await (<File>this.file).arrayBuffer(),
+            format: (<File>this.file).type,
+            expiration: this.expirationDate,
+            maxPlays: this.maxPlays,
+          }),
+        });
+        if (response.ok) {
+          console.log('File uploaded successfully');
+        }
       } else {
         // TODO: File failed to upload, display failure modal
         console.log('File failed to upload');
