@@ -13,6 +13,12 @@ type DownloadHandlerError struct {
 	string
 }
 
+type SongNotFound struct{}
+
+func (e SongNotFound) Error() string {
+	return "Song not found!"
+}
+
 func (d DownloadHandlerError) Error() string {
 	return d.string
 }
@@ -30,7 +36,7 @@ func NewDownloadHandler(db *bolt.DB, verbose *bool) *DownloadHandler {
 }
 
 func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var song *Song
+	var song *Song = new(Song)
 	id := mux.Vars(r)["id"]
 
 	if err := h.db.Update(func(tx *bolt.Tx) error {
@@ -41,29 +47,34 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Get data
 		data := bucket.Get([]byte(id))
 		if data == nil {
-			return DownloadHandlerError{"Song ID does not exist"}
+			return SongNotFound{}
 		}
 		// Unmarshal into Song
 		if err = json.Unmarshal(data, song); err != nil {
 			return err
 		}
-		if song == nil {
-			return DownloadHandlerError{"Song is nil!"}
-		}
+
 		// Decrement remaining plays
-		newSong := *song
-		newSong.RemainingPlays -= 1
+		song.RemainingPlays -= 1
 		// Marshal this back into bytes
-		data, err = json.Marshal(&newSong)
+		data, err = json.Marshal(song)
 		if err != nil {
 			return err
 		}
 		// Put updated bytes in DB
-		if err = bucket.Put([]byte(id), data); err != nil {
+		if song.RemainingPlays == 0 {
+			if err = bucket.Delete([]byte(id)); err != nil {
+				return err
+			}
+		} else if err = bucket.Put([]byte(id), data); err != nil {
 			return err
 		}
 		return nil
 	}); err != nil {
+		if _, ok := err.(SongNotFound); ok {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		if *h.verbose {
 			log.Printf("Unexpected error downloading song: %v\n", err)
 		}
