@@ -27,12 +27,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// TODO: Add proper CORS headers
+
 func setup() http.Server {
 	r := mux.NewRouter()
 	r.Handle("/api/songs/{id}", NewSongHandler()).Methods("GET", "POST")
+	r.Use(mux.CORSMethodMiddleware(r))
 	return http.Server{
 		Handler:      r,
-		Addr:         "",
+		Addr:         ":8080",
 		WriteTimeout: time.Duration(10) * time.Second,
 		ReadTimeout:  time.Duration(10) * time.Second,
 	}
