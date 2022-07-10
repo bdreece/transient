@@ -32,7 +32,7 @@ func main() {
 		Help: "Enable verbose output",
 	})
 
-	db, err := bolt.Open("bolt.db", 0666, nil)
+	db, err := bolt.Open("./bolt.db", 0666, nil)
 	if err != nil {
 		os.Exit(1)
 	}
