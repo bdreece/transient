@@ -20,22 +20,18 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 )
 
-type Song struct {
-	TrackName  string
-	ArtistName string
-	Audio      []byte
-	Format     string
-	Expiration time.Time
-	MaxPlays   int
-}
+var BUCKET = []byte("songs")
 
-func NewSong() (s Song) { return }
+type HandlerError struct{ string }
+
+func (e HandlerError) Error() string {
+	return e.string
+}
 
 type Handler struct {
 	verbose bool
@@ -50,49 +46,87 @@ func NewHandler(verbose bool, db *bolt.DB) *Handler {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
+	var (
+		body []byte
+		song *Song
+	)
+
+	// Get request ID slug as bytes
+	id := []byte(mux.Vars(r)["id"])
+
 	if h.verbose {
 		log.Printf("New request on song: %s\n", id)
 		log.Printf("Request method: %s\n", r.Method)
 	}
+
 	switch r.Method {
 	case "POST":
-		var rawBody []byte
-		_, err := r.Body.Read(rawBody)
+		// Read body
+		if n, err := r.Body.Read(body); err != nil || n < 1 {
+			// Empty body
+			w.WriteHeader(http.StatusBadRequest)
+		}
 
-		if err != nil {
+		// Update DB with Song
+		if err := h.db.Update(func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists([]byte("songs"))
+			if err != nil {
+				// Error creating bucket
+				return err
+			}
+			err = bucket.Put(id, body)
+			if err != nil {
+				// Error putting value in bucket
+				return err
+			}
+			return nil
+		}); err != nil {
+			if h.verbose {
+				log.Printf("Unexpected server error: %v\n", err)
+			}
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
-		song := NewSong()
-		json.Unmarshal(rawBody, &song)
-		// TODO: Put song in BoltDB
-		h.db.Update(func(tx *bolt.Tx) error {
-			bucket, err := tx.CreateBucketIfNotExists([]byte("songs"))
-			if err != nil {
-				return err
-			}
-			bucket.Put([]byte(id), rawBody)
-			return nil
-		})
-
 		w.WriteHeader(http.StatusOK)
 	case "GET":
-		// TODO: Get song from BoltDB
-		var song *Song
-		if err := h.db.View(func(tx *bolt.Tx) error {
-			bucket, err := tx.CreateBucketIfNotExists([]byte("songs"))
+		if err := h.db.Update(func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists(BUCKET)
+			if err != nil {
+				// Error creating bucket
+				return err
+			}
+
+			body := bucket.Get([]byte(id))
+			if body == nil {
+				return HandlerError{"ID does not exist"}
+			}
+
+			if err := json.Unmarshal(body, song); err != nil {
+				return err
+			}
+
+			// Decrement remaining plays
+			newSong := *song
+			newSong.RemainingPlays -= 1
+			body, err = json.Marshal(newSong)
 			if err != nil {
 				return err
 			}
-			body := bucket.Get([]byte(id))
-			if body == nil {
-				song = nil
-			}
-			json.Unmarshal(body, song)
+			bucket.Put(id, body)
+
 			return nil
 		}); err != nil {
-			w.WriteHeader(400)
+			if _, ok := err.(HandlerError); ok {
+				// ID does not exist
+				if h.verbose {
+					log.Printf("Requested ID (%v) does not exist in DB\n", id)
+				}
+				w.WriteHeader(http.StatusNoContent)
+			}
+			if h.verbose {
+				log.Printf("Unexpected server error: %v\n", err)
+			}
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		if song == nil {
@@ -101,6 +135,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		bytes, err := json.Marshal(song)
 		if err != nil {
+			if h.verbose {
+				log.Println("Error marshaling JSON")
+			}
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
