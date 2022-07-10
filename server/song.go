@@ -1,11 +1,12 @@
 package main
 
 type Song struct {
-	TrackName      string
-	ArtistName     string
-	Audio          []byte
-	Format         string
-	RemainingPlays int
+	TrackName      string `json:"trackName"`
+	ArtistName     string `json:"artistName"`
+	Description    string `json:"description"`
+	File           string `json:"file"`
+	Format         string `json:"format"`
+	RemainingPlays int    `json:"remainingPlays"`
 }
 
 func NewSong() (s Song) { return }
