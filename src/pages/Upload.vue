@@ -110,7 +110,11 @@ export default {
     async handleUpload() {
       const id = cuid.slug();
       const response = await fetch(`http://${API_HOST}/api/songs/${id}`, {
-        method: 'POST',
+        method: 'OPTIONS',
+        headers: {
+          'Access-Control-Request-Method': 'POST',
+          Origin: origin,
+        },
         body: JSON.stringify({
           trackName: this.trackName,
           artistName: this.artistName,
