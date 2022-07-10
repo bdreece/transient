@@ -28,32 +28,53 @@ import (
 )
 
 func main() {
-	p := argparse.NewParser("server", "Transient server application")
-	verbose := p.Flag("v", "verbose", &argparse.Options{
-		Required: true,
+	// Configure command-line arguments
+	parser := argparse.NewParser("server", "Transient server application")
+	verbose := parser.Flag("v", "verbose", &argparse.Options{
+		Required: false,
 		Help:     "Enable verbose output",
+		Default:  false,
+	})
+	port := parser.Int("p", "port", &argparse.Options{
+		Required: false,
+		Help:     "Port over which server is hosted",
+		Default:  8080,
+	})
+	dbPath := parser.String("d", "database", &argparse.Options{
+		Required: false,
+		Help:     "Path to database file",
+		Default:  "./bolt.db",
 	})
 
-	if err := p.Parse(os.Args); err != nil {
-		log.Fatal(p.Usage(err))
+	// Parse arguments
+	if err := parser.Parse(os.Args); err != nil {
+		log.Printf("Unexpected error parsing arguments: %v\n", err)
 	}
 
-	db, err := bolt.Open("./bolt.db", 0666, nil)
+	// Open database
+	db, err := bolt.Open(*dbPath, 0666, nil)
 	if err != nil {
+		if *verbose {
+			log.Printf("Failed to open database file: %v\n", err)
+		}
 		os.Exit(1)
 	}
+
+	if *verbose {
+		log.Println("Opened database")
+	}
 	// Setup server
-	srv := setup(*verbose, db)
+	srv := setup(db, port, verbose)
 
 	// Launch server
-	launch(&srv, *verbose)
+	launch(&srv, verbose)
 
 	// Setup shutdown context
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
 	defer cancel()
 
 	// Shutdown server
-	shutdown(&srv, ctx, *verbose)
+	shutdown(&srv, ctx, verbose)
 
 	os.Exit(0)
 }

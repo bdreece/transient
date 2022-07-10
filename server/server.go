@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -28,44 +29,54 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func setup(verbose bool, db *bolt.DB) http.Server {
-	if verbose {
+const BUCKET = "songs"
+
+func corsHandleFunc(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Max-Age", "86400")
+
+}
+
+func setup(db *bolt.DB, port *int, verbose *bool) http.Server {
+	if *verbose {
 		log.Println("Hello, server!")
 	}
 
 	router := mux.NewRouter()
-	// Main API route
-	router.Handle("/api/songs/{id}", NewHandler(verbose, db)).Methods(http.MethodGet, http.MethodPost)
-	// CORS route
-	router.HandleFunc("/api/songs/{id}", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Max-Age", "86400")
-	}).Methods(http.MethodOptions)
+	// Main API routes
+	router.Handle("/api/songs", NewUploadHandler(db, verbose)).Methods(http.MethodPost)
+	router.Handle("/api/songs/{id}", NewDownloadHandler(db, verbose)).Methods(http.MethodGet)
+	// CORS routes
+	router.HandleFunc("/api/songs", corsHandleFunc).Methods(http.MethodOptions)
+	router.HandleFunc("/api/songs/{id}", corsHandleFunc).Methods(http.MethodOptions)
 
 	// Not really sure what this does if I still have to add headers above...
 	// Silly gorilla mux
 	router.Use(mux.CORSMethodMiddleware(router))
 
-	if verbose {
+	if *verbose {
 		log.Println("Configured router")
 	}
 
 	return http.Server{
 		Handler:      router,
-		Addr:         ":8080",
+		Addr:         fmt.Sprintf(":%d", *port),
 		WriteTimeout: time.Duration(10) * time.Second,
 		ReadTimeout:  time.Duration(10) * time.Second,
 	}
 }
 
-func launch(srv *http.Server, verbose bool) {
+func launch(srv *http.Server, verbose *bool) {
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Fatalf("Failed to launch server: %v\n", err)
+			if *verbose {
+				log.Printf("Failed to launch server: %v\n", err)
+			}
+			os.Exit(1)
 		}
 	}()
 
-	if verbose {
+	if *verbose {
 		log.Println("Launched server")
 	}
 
@@ -75,14 +86,14 @@ func launch(srv *http.Server, verbose bool) {
 	<-c
 }
 
-func shutdown(srv *http.Server, ctx context.Context, verbose bool) {
+func shutdown(srv *http.Server, ctx context.Context, verbose *bool) {
 	go func() {
 		srv.Shutdown(ctx)
 	}()
 
 	<-ctx.Done()
 
-	if verbose {
+	if *verbose {
 		log.Println("Goodbye!")
 	}
 }
