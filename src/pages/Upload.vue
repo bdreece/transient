@@ -1,7 +1,7 @@
 <template>
-  <h1 class="text-3xl heading my-4 flex justify-center">Upload</h1>
+  <h1 class="text-3xl heading mt-4 flex justify-center">Upload</h1>
   <div class="flex justify-center">
-    <div class="flex-initial card w-96 my-4 bg-base-300 shadow-xl">
+    <div class="flex-initial card w-96 my-8 bg-base-300 shadow-xl">
       <div class="card-body">
         <div class="form-control">
           <label class="label">
@@ -34,6 +34,13 @@
           />
         </div>
         <div class="form-control">
+          <label class="label"> Track Description: </label>
+          <textarea
+            class="textarea textarea-bordered w-full max-w-xs"
+            :value="description"
+          />
+        </div>
+        <div class="form-control">
           <label class="label">
             <span class="label-text">
               <span class="text-accent">* </span>
@@ -43,7 +50,6 @@
           <input
             type="file"
             accept="audio/*"
-            placeholder="Upload audio file here"
             class="input input-bordered w-full max-w-xs"
             @change="handleFileChange($event.target)"
             required
@@ -56,16 +62,6 @@
         </div>
         <div class="form-control">
           <label class="label">
-            <span class="label-text">Expiration Date:</span>
-          </label>
-          <input
-            type="date"
-            class="input input-bordered w-full max-w-xs"
-            :value="expirationDate"
-          />
-        </div>
-        <div class="form-control">
-          <label class="label">
             <span class="label-text">Maximum Plays</span>
           </label>
           <input
@@ -73,6 +69,7 @@
             step="1"
             min="1"
             class="input input-bordered w-full max-w-xs"
+            required
           />
         </div>
       </div>
@@ -91,11 +88,13 @@
 
 <script lang="ts">
 import cuid from 'cuid';
+const API_HOST = 'localhost:8080';
 export default {
   data() {
     return {
       trackName: '',
       artistName: '',
+      description: '',
       file: {},
       expirationDate: 'YYYY-MM-DD',
       maxPlays: 1,
@@ -109,9 +108,8 @@ export default {
       }
     },
     async handleUpload() {
-      // TODO: implement when backend is finished
       const id = cuid.slug();
-      const response = await fetch(`/api/songs/${id}`, {
+      const response = await fetch(`http://${API_HOST}/api/songs/${id}`, {
         method: 'POST',
         body: JSON.stringify({
           trackName: this.trackName,
