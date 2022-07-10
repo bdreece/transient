@@ -54,10 +54,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get request ID slug as bytes
 	id := []byte(mux.Vars(r)["id"])
 
-	if h.verbose {
-		log.Printf("New request on song: %s\n", id)
-		log.Printf("Request method: %s\n", r.Method)
-	}
+	log.Printf("New request on song: %s\n", id)
+	log.Printf("Request method: %s\n", r.Method)
 
 	switch r.Method {
 	case "POST":

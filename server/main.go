@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"time"
 
@@ -29,8 +30,13 @@ import (
 func main() {
 	p := argparse.NewParser("server", "Transient server application")
 	verbose := p.Flag("v", "verbose", &argparse.Options{
-		Help: "Enable verbose output",
+		Required: true,
+		Help:     "Enable verbose output",
 	})
+
+	if err := p.Parse(os.Args); err != nil {
+		log.Fatal(p.Usage(err))
+	}
 
 	db, err := bolt.Open("./bolt.db", 0666, nil)
 	if err != nil {
