@@ -29,10 +29,20 @@ import (
 
 // TODO: Add proper CORS headers
 
-func setup() http.Server {
+func setup(verbose bool) http.Server {
+	if verbose {
+		log.Println("Hello, server!")
+	}
 	r := mux.NewRouter()
-	r.Handle("/api/songs/{id}", NewSongHandler()).Methods("GET", "POST")
+	r.Handle("/api/songs/{id}", NewSongHandler(verbose)).Methods(http.MethodGet, http.MethodPost)
+	r.HandleFunc("/api/songs/{id}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+	}).Methods(http.MethodOptions)
 	r.Use(mux.CORSMethodMiddleware(r))
+	if verbose {
+		log.Println("Configured router")
+	}
 	return http.Server{
 		Handler:      r,
 		Addr:         ":8080",
@@ -41,12 +51,16 @@ func setup() http.Server {
 	}
 }
 
-func launch(srv *http.Server) {
+func launch(srv *http.Server, verbose bool) {
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Fatalf("Failed to launch server: %v\n", err)
 		}
 	}()
+
+	if verbose {
+		log.Println("Launched server")
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -54,10 +68,14 @@ func launch(srv *http.Server) {
 	<-c
 }
 
-func shutdown(srv *http.Server, ctx context.Context) {
+func shutdown(srv *http.Server, ctx context.Context, verbose bool) {
 	go func() {
 		srv.Shutdown(ctx)
 	}()
 
 	<-ctx.Done()
+
+	if verbose {
+		log.Println("Goodbye!")
+	}
 }

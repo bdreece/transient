@@ -19,26 +19,30 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
+
+	"github.com/akamensky/argparse"
 )
 
 func main() {
-	log.Println("Hello, server!")
+	p := argparse.NewParser("server", "Transient server application")
+	verbose := p.Flag("v", "verbose", &argparse.Options{
+		Help: "Enable verbose output",
+	})
 
 	// Setup server
-	srv := setup()
+	srv := setup(*verbose)
+
 	// Launch server
-	launch(&srv)
+	launch(&srv, *verbose)
 
 	// Setup shutdown context
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(10)*time.Second)
 	defer cancel()
 
 	// Shutdown server
-	shutdown(&srv, ctx)
+	shutdown(&srv, ctx, *verbose)
 
-	log.Println("Goodbye!")
 	os.Exit(0)
 }

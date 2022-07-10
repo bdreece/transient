@@ -18,6 +18,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -36,21 +37,28 @@ type Song struct {
 func NewSong() (s Song) { return }
 
 type SongHandler struct {
-	bag Bag[Song]
+	bag     Bag[Song]
+	verbose bool
 }
 
-func NewSongHandler() *SongHandler {
+func NewSongHandler(verbose bool) *SongHandler {
 	return &SongHandler{
-		bag: NewBag[Song](),
+		bag:     NewBag[Song](),
+		verbose: verbose,
 	}
 }
 
 func (h *SongHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
+	if h.verbose {
+		log.Printf("New request on song: %s\n", id)
+		log.Printf("Request method: %s\n", r.Method)
+	}
 	switch r.Method {
 	case "POST":
 		var rawBody []byte
 		_, err := r.Body.Read(rawBody)
+
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
