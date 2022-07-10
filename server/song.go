@@ -4,7 +4,7 @@ type Song struct {
 	TrackName      string `json:"trackName"`
 	ArtistName     string `json:"artistName"`
 	Description    string `json:"description"`
-	File           string `json:"file"`
+	File           []byte `json:"file"`
 	Format         string `json:"format"`
 	RemainingPlays int    `json:"remainingPlays"`
 }
