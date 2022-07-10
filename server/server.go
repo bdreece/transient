@@ -24,25 +24,30 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 )
 
 // TODO: Add proper CORS headers
 
-func setup(verbose bool) http.Server {
+func setup(verbose bool, db *bolt.DB) http.Server {
 	if verbose {
 		log.Println("Hello, server!")
 	}
+
 	r := mux.NewRouter()
-	r.Handle("/api/songs/{id}", NewSongHandler(verbose)).Methods(http.MethodGet, http.MethodPost)
+	r.Handle("/api/songs/{id}", NewSongHandler(verbose, db)).Methods(http.MethodGet, http.MethodPost)
 	r.HandleFunc("/api/songs/{id}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Max-Age", "86400")
 	}).Methods(http.MethodOptions)
+
 	r.Use(mux.CORSMethodMiddleware(r))
+
 	if verbose {
 		log.Println("Configured router")
 	}
+
 	return http.Server{
 		Handler:      r,
 		Addr:         ":8080",

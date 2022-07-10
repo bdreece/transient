@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/akamensky/argparse"
+	"github.com/boltdb/bolt"
 )
 
 func main() {
@@ -31,8 +32,12 @@ func main() {
 		Help: "Enable verbose output",
 	})
 
+	db, err := bolt.Open("bolt.db", 0666, nil)
+	if err != nil {
+		os.Exit(1)
+	}
 	// Setup server
-	srv := setup(*verbose)
+	srv := setup(*verbose, db)
 
 	// Launch server
 	launch(&srv, *verbose)

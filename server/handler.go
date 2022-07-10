@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 )
 
@@ -37,14 +38,14 @@ type Song struct {
 func NewSong() (s Song) { return }
 
 type SongHandler struct {
-	bag     Bag[Song]
 	verbose bool
+	db      *bolt.DB
 }
 
-func NewSongHandler(verbose bool) *SongHandler {
+func NewSongHandler(verbose bool, db *bolt.DB) *SongHandler {
 	return &SongHandler{
-		bag:     NewBag[Song](),
-		verbose: verbose,
+		verbose,
+		db,
 	}
 }
 
@@ -65,11 +66,30 @@ func (h *SongHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		song := NewSong()
 		json.Unmarshal(rawBody, &song)
+		// TODO: Put song in BoltDB
+		h.db.Update(func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists([]byte("songs"))
+			if err != nil {
+				return err
+			}
+			bucket.Put([]byte(id), rawBody)
+			return nil
+		})
 
-		h.bag.Push(id, song.MaxPlays, &song)
 		w.WriteHeader(http.StatusOK)
 	case "GET":
-		song := h.bag.Pop(id)
+		// TODO: Get song from BoltDB
+		var song *Song
+		h.db.View(func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists([]byte("songs"))
+			if err != nil {
+				return err
+			}
+			body := bucket.Get([]byte(id))
+			json.Unmarshal(body, song)
+			return nil
+		})
+
 		if song == nil {
 			w.WriteHeader(http.StatusNoContent)
 		}
