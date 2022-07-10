@@ -28,28 +28,30 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// TODO: Add proper CORS headers
-
 func setup(verbose bool, db *bolt.DB) http.Server {
 	if verbose {
 		log.Println("Hello, server!")
 	}
 
-	r := mux.NewRouter()
-	r.Handle("/api/songs/{id}", NewSongHandler(verbose, db)).Methods(http.MethodGet, http.MethodPost)
-	r.HandleFunc("/api/songs/{id}", func(w http.ResponseWriter, r *http.Request) {
+	router := mux.NewRouter()
+	// Main API route
+	router.Handle("/api/songs/{id}", NewHandler(verbose, db)).Methods(http.MethodGet, http.MethodPost)
+	// CORS route
+	router.HandleFunc("/api/songs/{id}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Max-Age", "86400")
 	}).Methods(http.MethodOptions)
 
-	r.Use(mux.CORSMethodMiddleware(r))
+	// Not really sure what this does if I still have to add headers above...
+	// Silly gorilla mux
+	router.Use(mux.CORSMethodMiddleware(router))
 
 	if verbose {
 		log.Println("Configured router")
 	}
 
 	return http.Server{
-		Handler:      r,
+		Handler:      router,
 		Addr:         ":8080",
 		WriteTimeout: time.Duration(10) * time.Second,
 		ReadTimeout:  time.Duration(10) * time.Second,

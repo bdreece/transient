@@ -37,19 +37,19 @@ type Song struct {
 
 func NewSong() (s Song) { return }
 
-type SongHandler struct {
+type Handler struct {
 	verbose bool
 	db      *bolt.DB
 }
 
-func NewSongHandler(verbose bool, db *bolt.DB) *SongHandler {
-	return &SongHandler{
+func NewHandler(verbose bool, db *bolt.DB) *Handler {
+	return &Handler{
 		verbose,
 		db,
 	}
 }
 
-func (h *SongHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if h.verbose {
 		log.Printf("New request on song: %s\n", id)
@@ -80,23 +80,30 @@ func (h *SongHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		// TODO: Get song from BoltDB
 		var song *Song
-		h.db.View(func(tx *bolt.Tx) error {
+		if err := h.db.View(func(tx *bolt.Tx) error {
 			bucket, err := tx.CreateBucketIfNotExists([]byte("songs"))
 			if err != nil {
 				return err
 			}
 			body := bucket.Get([]byte(id))
+			if body == nil {
+				song = nil
+			}
 			json.Unmarshal(body, song)
 			return nil
-		})
+		}); err != nil {
+			w.WriteHeader(400)
+		}
 
 		if song == nil {
 			w.WriteHeader(http.StatusNoContent)
 		}
+
 		bytes, err := json.Marshal(song)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
+
 		w.Write(bytes)
 	}
 }
