@@ -6,7 +6,7 @@
     "dev": "concurrently 'vite' 'pnpm dev:server'",
     "dev:server": "cd server; go run . -vf files",
     "build": "vue-tsc --noEmit && vite build && pnpm build:server",
-    "build:server": "cd server; go build -v",
+    "build:server": "cd server; go build -v -o ../dist/server",
     "preview": "vite preview",
     "test": "jest"
   },
