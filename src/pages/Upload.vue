@@ -16,29 +16,41 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { Buffer } from 'buffer';
-import { defineComponent } from 'vue';
+import { defineComponent, ref, Ref } from 'vue';
+import { Song } from '../scripts/api.client';
 
 import upload from '../scripts/upload.client';
 
 export default defineComponent({
-  data() {
-    return {
+  setup() {
+    // TODO: Define song defaults
+    const song: Ref<Song> = ref({
       trackName: '',
       artistName: '',
       description: '',
-      file: '',
-      format: '',
-      remainingPlays: 1,
+      image: {
+        data: '',
+        format: '',
+      },
+      audio: {
+        data: '',
+        format: '',
+      },
+      remainingPlays: 0,
+    });
+
+    return {
+      song,
     };
   },
   computed: {
     showUpload() {
-      return (
-        this.trackName != '' &&
-        this.artistName != '' &&
-        this.file != '' &&
-        this.format != ''
-      );
+      const {
+        trackName,
+        artistName,
+        audio: { data, format },
+      } = this.song;
+      return trackName != '' && artistName != '' && data != '' && format != '';
     },
   },
   methods: {
@@ -47,12 +59,12 @@ export default defineComponent({
 
       if (files) {
         const data = await files[0].text();
-        this.format = files[0].type;
-        this.file = Buffer.from(data).toString('base64');
+        this.song.audio.format = files[0].type;
+        this.song.audio.data = Buffer.from(data).toString('base64');
       }
     },
     async handleUpload() {
-      await upload(this);
+      await upload(this.song);
     },
   },
 });
