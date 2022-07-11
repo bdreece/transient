@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"mime"
 	"os"
 
@@ -29,16 +30,22 @@ type FileData struct {
 	Format string `json:"format"`
 }
 
-func (d FileData) Store(filePath *string, id string) (*FileStore, error) {
+func (d FileData) Store(filePath *string, id string, verbose *bool) (*FileStore, error) {
 	// Decode data URL
 	data, err := dataurl.DecodeString(d.Data)
 	if err != nil {
+		if *verbose {
+			log.Printf("Failed to decode file data: %v\n", err)
+		}
 		return nil, err
 	}
 
 	// Get file extension
 	ext, err := mime.ExtensionsByType(data.MediaType.ContentType())
 	if err != nil {
+		if *verbose {
+			log.Printf("Failed to get file extensions for type: %v\n", err)
+		}
 		return nil, err
 	}
 
@@ -64,16 +71,30 @@ type SongData struct {
 
 func NewSongData() (s SongData) { return }
 
-func (s SongData) Store(filePath *string, id string) (*SongStore, error) {
+func (s SongData) Store(filePath *string, id string, verbose *bool) (*SongStore, error) {
 	// Store image
-	image, err := s.Image.Store(filePath, id)
-	if err != nil {
-		return nil, err
+	var (
+		image, audio *FileStore
+		err          error
+	)
+	if s.Image.Data != "" {
+		image, err = s.Image.Store(filePath, id, verbose)
+		if err != nil {
+			if *verbose {
+				log.Printf("Error storing image data: %v\n", err)
+			}
+			return nil, err
+		}
+	} else {
+		image = new(FileStore)
 	}
 
 	// Store audio
-	audio, err := s.Audio.Store(filePath, id)
+	audio, err = s.Audio.Store(filePath, id, verbose)
 	if err != nil {
+		if *verbose {
+			log.Printf("Error storing audio data: %v\n", err)
+		}
 		return nil, err
 	}
 
@@ -113,13 +134,28 @@ type SongStore struct {
 	RemainingPlays int       `json:"remainingPlays"`
 }
 
-func (s SongStore) Data() (*SongData, error) {
-	image, err := s.Image.Data()
-	if err != nil {
-		return nil, err
+func (s SongStore) Data(verbose *bool) (*SongData, error) {
+	var (
+		image, audio *FileData = nil, nil
+		err          error
+	)
+
+	if s.Image.Path != "" {
+		image, err = s.Image.Data()
+		if err != nil {
+			if *verbose {
+				log.Printf("Failed to load image data: %v\n", err)
+			}
+			return nil, err
+		}
+	} else {
+		image = new(FileData)
 	}
-	audio, err := s.Audio.Data()
+	audio, err = s.Audio.Data()
 	if err != nil {
+		if *verbose {
+			log.Printf("Failed to load audio data: %v\n", err)
+		}
 		return nil, err
 	}
 
