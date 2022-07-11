@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts">
 /* Transient - A temporary audio file sharing service
  * Copyright (C) 2022 Brian Reece
  *
@@ -17,7 +17,6 @@
  */
 
 import { defineComponent } from 'vue';
-
 export default defineComponent({});
 </script>
 

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts">
 /* Transient - A temporary audio file sharing service
  * Copyright (C) 2022 Brian Reece
  *
@@ -15,11 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-import { inject } from 'vue';
-
-const toggleTheme: () => void = inject('toggleTheme') ?? (() => {});
+import { defineComponent } from 'vue';
+export default defineComponent({
+  inject: ['toggleTheme'],
+  methods: {
+    toggleTheme() {
+      this.toggleTheme();
+    },
+  },
+});
 </script>
+
 <template>
   <div class="drawer">
     <input id="nav-toggle" type="checkbox" class="drawer-toggle" />
