@@ -18,7 +18,7 @@
 import { Buffer } from 'buffer';
 import { defineComponent } from 'vue';
 
-const API_HOST = 'localhost:8080';
+import upload from '../scripts/upload.client';
 
 export default defineComponent({
   data() {
@@ -52,42 +52,7 @@ export default defineComponent({
       }
     },
     async handleUpload() {
-      const {
-        trackName,
-        artistName,
-        description,
-        file,
-        format,
-        remainingPlays,
-      } = this;
-
-      const response = await fetch(`http://${API_HOST}/api/songs`, {
-        method: 'POST',
-        headers: {
-          'Access-Control-Request-Method': 'POST',
-          'Content-Type': 'application/json',
-          Origin: origin,
-        },
-        body: JSON.stringify({
-          trackName,
-          artistName,
-          description,
-          file,
-          format,
-          remainingPlays,
-        }),
-      });
-
-      if (response.ok) {
-        // TODO: File uploaded successfully, display success modal
-        const data = await response.text();
-        console.log(`Raw response: ${data}`);
-        const { id } = JSON.parse(data);
-        console.log(`File uploaded successfully: ${id}`);
-      } else {
-        // TODO: File failed to upload, display failure modal
-        console.log('File failed to upload');
-      }
+      await upload(this);
     },
   },
 });
