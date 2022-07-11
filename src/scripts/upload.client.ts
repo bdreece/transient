@@ -4,8 +4,8 @@ const upload = async ({
   trackName,
   artistName,
   description,
-  file,
-  format,
+  image,
+  audio,
   remainingPlays,
 }: Song) => {
   const response = await fetch(`http://${API_HOST}/api/songs`, {
@@ -19,8 +19,8 @@ const upload = async ({
       trackName,
       artistName,
       description,
-      file,
-      format,
+      image,
+      audio,
       remainingPlays,
     }),
   });
