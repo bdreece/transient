@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, Ref, ref } from 'vue';
+import { computed, defineComponent, Ref, ref } from 'vue';
 import { createObjectURL, dataURLToBlob } from 'blob-util';
 import { extension } from 'mime-types';
 
@@ -29,32 +29,38 @@ export default defineComponent({
 
     const status = ref('');
 
-    const audioUrl = () => {
+    const audioUrl = computed(() => {
       return createObjectURL(dataURLToBlob(song.value.audio.data));
-    };
+    });
 
-    const imageUrl = () => {
-      return createObjectURL(dataURLToBlob(song.value.image?.data ?? ''));
-    };
+    const imageUrl = computed(() => {
+      return song.value.image && song.value.image.data != ''
+        ? createObjectURL(dataURLToBlob(song.value.image.data))
+        : 'https://static.vecteezy.com/system/resources/previews/000/196/846/original/realistic-cd-mockup-design-template-vector.jpg';
+    });
 
-    const filename = () => {
+    const format = computed(() => {
       const { data } = song.value.audio;
       const begin = data.indexOf(':') + 1;
       const end = data.indexOf(';') - 1;
-      const format = data.slice(begin, end);
-      const ext = extension(format);
+      return data.slice(begin, end);
+    });
+
+    const filename = computed(() => {
+      const ext = extension(format.value);
       if (ext) {
-        return `${song.value.trackName}.${extension(format)}`;
+        return `${song.value.trackName}.${extension(format.value)}`;
       } else {
         return song.value.trackName;
       }
-    };
+    });
 
     return {
       song,
       status,
       audioUrl,
       imageUrl,
+      format,
       filename,
     };
   },
@@ -90,6 +96,9 @@ export default defineComponent({
           <li>Artist Name: {{ song.artistName }}</li>
           <li>Description: {{ song.description }}</li>
         </ul>
+        <audio controls>
+          <source :src="audioUrl" :type="format" />
+        </audio>
         <div class="card-actions justify-center">
           <a class="btn btn-primary" :href="audioUrl" :download="filename">
             Download
