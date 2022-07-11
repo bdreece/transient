@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
@@ -61,6 +62,7 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 
+	// Get song storage meta from DB, decrementing RemainingPlays
 	if err := h.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(BUCKET))
 		if err != nil {
@@ -118,7 +120,9 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	data, err := song.Data()
+
+	// Load song data from disk
+	data, err := song.Data(h.verbose)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error loading song data from disk: %v\n", err)
@@ -129,6 +133,27 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if *h.verbose {
 		log.Println("Loaded song from disk")
 	}
+
+	// Remove files if exhausted
+	if data.RemainingPlays == 0 {
+		if err = os.Remove(song.Audio.Path); err != nil {
+			if *h.verbose {
+				log.Printf("Unexpected error removing audio file: %v\n", err)
+			}
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if song.Image.Path != "" {
+			if err = os.Remove(song.Image.Path); err != nil {
+				if *h.verbose {
+					log.Printf("Unexpected error removing image file: %v\n", err)
+				}
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		if *h.verbose {
