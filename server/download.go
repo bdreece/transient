@@ -54,6 +54,7 @@ func NewDownloadHandler(db *bolt.DB, verbose *bool) *DownloadHandler {
 func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var song SongStore
 	id := mux.Vars(r)["id"]
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 
 	if err := h.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(BUCKET))

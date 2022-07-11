@@ -54,6 +54,8 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		song   SongData
 	)
 
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+
 	if r.Header["Content-Type"][0] != "application/json" {
 		if *h.verbose {
 			log.Println("Invalid content type")
@@ -68,7 +70,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if n == 0 {
 			break
 		}
-		body = append(body, buf...)
+		body = append(body, buf[:n]...)
 		length += n
 	}
 	if err != nil && err != io.EOF {
