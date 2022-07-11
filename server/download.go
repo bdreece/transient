@@ -69,6 +69,9 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Get data
 		data := bucket.Get([]byte(id))
 		if data == nil {
+			if *h.verbose {
+				log.Printf("Song '%s' not found!\n", id)
+			}
 			return SongNotFound{}
 		}
 		if *h.verbose {
