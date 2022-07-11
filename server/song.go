@@ -74,7 +74,7 @@ func (s SongData) Store(id string) (*SongStore, error) {
 
 type FileStore struct {
 	Path   string `json:"path"`
-	Format string `json:"path"`
+	Format string `json:"format"`
 }
 
 func (s FileStore) Data() (*FileData, error) {
