@@ -15,13 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Buffer } from 'buffer';
 import { defineComponent, ref, Ref } from 'vue';
+import { blobToDataURL } from 'blob-util';
 
+import UploadConfirmation from '../components/UploadConfirmation.vue';
 import type { Song } from '../scripts/api.client';
-import upload from '../scripts/upload.client';
 
 export default defineComponent({
+  components: {
+    UploadConfirmation,
+  },
   setup() {
     // TODO: Define song defaults
     const song: Ref<Song> = ref({
@@ -39,8 +42,11 @@ export default defineComponent({
       remainingPlays: 0,
     });
 
+    const show = ref(false);
+
     return {
       song,
+      show,
     };
   },
   computed: {
@@ -65,10 +71,9 @@ export default defineComponent({
       const files = (target as HTMLInputElement).files;
 
       if (files) {
-        const data = await files[0].text();
         this.song.audio = {
+          data: await blobToDataURL(files[0]),
           format: files[0].type,
-          data: Buffer.from(data).toString('base64'),
         };
       }
     },
@@ -76,15 +81,14 @@ export default defineComponent({
       const files = (target as HTMLInputElement).files;
 
       if (files) {
-        const data = await files[0].text();
         this.song.image = {
+          data: await blobToDataURL(files[0]),
           format: files[0].type,
-          data: Buffer.from(data).toString('base64'),
         };
       }
     },
-    async handleUpload() {
-      await upload(this.song);
+    handleUpload() {
+      this.show = true;
     },
   },
 });
@@ -189,6 +193,7 @@ export default defineComponent({
           Upload
         </button>
       </div>
+      <UploadConfirmation v-if="show" :song="song" />
     </div>
   </div>
 </template>
