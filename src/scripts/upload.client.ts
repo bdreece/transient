@@ -26,13 +26,12 @@ const upload = async ({
   });
 
   if (response.ok) {
-    // TODO: File uploaded successfully, display success modal
     console.log('File uploaded successfully');
     const { id } = await response.json();
-    console.log(`ID: ${id}`);
+    return id;
   } else {
-    // TODO: File failed to upload, display failure modal
     console.log('File failed to upload');
+    return undefined;
   }
 };
 
