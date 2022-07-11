@@ -80,7 +80,6 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !json.Valid(body[:length]) {
 		if *h.verbose {
 			log.Println("Request body is not valid JSON!")
-			log.Printf("Request body: %s\n", body)
 		}
 		w.WriteHeader(http.StatusBadRequest)
 		return
