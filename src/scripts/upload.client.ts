@@ -27,8 +27,7 @@ const upload = async ({
 
   if (response.ok) {
     // TODO: File uploaded successfully, display success modal
-    const data = await response.text();
-    console.log(`Raw response: ${data}`);
+    console.log('File uploaded successfully');
     const { id } = await response.json();
     console.log(`ID: ${id}`);
   } else {
