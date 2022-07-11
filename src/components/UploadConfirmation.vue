@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, defineProps, PropType, ref } from 'vue';
+import { defineComponent, PropType, ref } from 'vue';
 
 import Spinner from './Spinner.vue';
 
