@@ -15,9 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 export default defineComponent({
-  inject: ['toggleTheme'],
+  setup() {
+    const toggleTheme: () => void = inject('toggleTheme') ?? (() => {});
+    return { toggleTheme };
+  },
 });
 </script>
 
