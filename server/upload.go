@@ -31,13 +31,15 @@ type UploadResponse struct {
 }
 
 type UploadHandler struct {
-	db      *bolt.DB
-	verbose *bool
+	db       *bolt.DB
+	filePath *string
+	verbose  *bool
 }
 
-func NewUploadHandler(db *bolt.DB, verbose *bool) *UploadHandler {
+func NewUploadHandler(db *bolt.DB, filePath *string, verbose *bool) *UploadHandler {
 	return &UploadHandler{
 		db,
+		filePath,
 		verbose,
 	}
 }
@@ -88,7 +90,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Store contents of request body on disk
 	id := cuid.New()
-	store, err := song.Store(id)
+	store, err := song.Store(h.filePath, id)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error storing files to disk: %v\n", err)

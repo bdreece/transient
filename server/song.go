@@ -26,8 +26,8 @@ type FileData struct {
 	Format string `json:"format"`
 }
 
-func (d FileData) Store(id string, fileType string) (*FileStore, error) {
-	path := fmt.Sprintf("%s/%s-%s", DATA_PATH, id, fileType)
+func (d FileData) Store(filePath *string, id string, fileType string) (*FileStore, error) {
+	path := fmt.Sprintf("%s/%s-%s", *filePath, id, fileType)
 	err := os.WriteFile(path, d.Data, 0666)
 	if err != nil {
 		return nil, err
@@ -49,15 +49,15 @@ type SongData struct {
 
 func NewSongData() (s SongData) { return }
 
-func (s SongData) Store(id string) (*SongStore, error) {
+func (s SongData) Store(filePath *string, id string) (*SongStore, error) {
 	// Store image
-	image, err := s.Image.Store(id, "image")
+	image, err := s.Image.Store(filePath, id, "image")
 	if err != nil {
 		return nil, err
 	}
 
 	// Store audio
-	audio, err := s.Audio.Store(id, "audio")
+	audio, err := s.Audio.Store(filePath, id, "audio")
 	if err != nil {
 		return nil, err
 	}

@@ -38,14 +38,14 @@ func corsHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func setup(db *bolt.DB, port *int, verbose *bool) http.Server {
+func setup(db *bolt.DB, filePath *string, port *int, verbose *bool) http.Server {
 	if *verbose {
 		log.Println("Hello, server!")
 	}
 
 	router := mux.NewRouter()
 	// Main API routes
-	router.Handle("/api/songs", NewUploadHandler(db, verbose)).Methods(http.MethodPost)
+	router.Handle("/api/songs", NewUploadHandler(db, filePath, verbose)).Methods(http.MethodPost)
 	router.Handle("/api/songs/{id}", NewDownloadHandler(db, verbose)).Methods(http.MethodGet)
 	// CORS routes
 	router.HandleFunc("/api/songs", corsHandleFunc).Methods(http.MethodOptions)

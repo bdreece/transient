@@ -32,16 +32,25 @@ const DATA_PATH string = "/var/data/transient"
 func main() {
 	// Configure command-line arguments
 	parser := argparse.NewParser("server", "Transient server application")
+
 	verbose := parser.Flag("v", "verbose", &argparse.Options{
 		Required: false,
 		Help:     "Enable verbose output",
 		Default:  false,
 	})
+
 	port := parser.Int("p", "port", &argparse.Options{
 		Required: false,
 		Help:     "Port over which server is hosted",
 		Default:  8080,
 	})
+
+	filePath := parser.String("f", "files", &argparse.Options{
+		Required: false,
+		Help:     "Path to user file directory",
+		Default:  "/var/data/transient",
+	})
+
 	dbPath := parser.String("d", "database", &argparse.Options{
 		Required: false,
 		Help:     "Path to database file",
@@ -63,7 +72,7 @@ func main() {
 	}
 
 	// Create data dir if not exists
-	err = os.MkdirAll(DATA_PATH, 0666)
+	err = os.MkdirAll(*filePath, 0666)
 	if err != nil {
 		if *verbose {
 			log.Printf("Failed to create data directory: %v\n", err)
@@ -75,7 +84,7 @@ func main() {
 		log.Println("Opened database")
 	}
 	// Setup server
-	srv := setup(db, port, verbose)
+	srv := setup(db, filePath, port, verbose)
 
 	// Launch server
 	launch(&srv, verbose)
