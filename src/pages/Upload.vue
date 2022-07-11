@@ -54,7 +54,7 @@ export default defineComponent({
     },
   },
   methods: {
-    async handleFileChange({ target }: Event) {
+    async handleAudioChange({ target }: Event) {
       const files = (target as HTMLInputElement).files;
 
       if (files) {
@@ -86,7 +86,7 @@ export default defineComponent({
             type="text"
             placeholder="Insert track name here"
             class="input input-bordered w-full max-w-xs"
-            v-model="trackName"
+            v-model="song.trackName"
             required
           />
         </div>
@@ -101,7 +101,7 @@ export default defineComponent({
             type="text"
             placeholder="Insert artist name here"
             class="input input-bordered w-full max-w-xs"
-            v-model="artistName"
+            v-model="song.artistName"
             required
           />
         </div>
@@ -109,7 +109,7 @@ export default defineComponent({
           <label class="label"> Track Description: </label>
           <textarea
             class="textarea textarea-bordered w-full max-w-xs"
-            v-model="description"
+            v-model="song.description"
           />
         </div>
         <div class="form-control">
@@ -123,7 +123,7 @@ export default defineComponent({
             type="file"
             accept="audio/*"
             class="input input-bordered w-full max-w-xs"
-            @change="handleFileChange($event)"
+            @change="handleAudioChange($event)"
             required
           />
           <label class="label">
@@ -141,7 +141,7 @@ export default defineComponent({
             step="1"
             min="1"
             class="input input-bordered w-full max-w-xs"
-            v-model="remainingPlays"
+            v-model="song.remainingPlays"
             required
           />
         </div>
