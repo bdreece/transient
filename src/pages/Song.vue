@@ -87,16 +87,24 @@ export default defineComponent({
     <Spinner v-if="status === ''" />
     <div
       v-else-if="status === 'success'"
-      class="flex-initial card w-96 my-8 bg-base-300 shadow-xl"
+      class="flex-initial card lg:card-side my-8 bg-base-300 shadow-xl"
     >
-      <figure><img :src="imageUrl" alt="Song Image" /></figure>
+      <figure class="m-4">
+        <img :src="imageUrl" alt="Song Image" width="256" height="256" />
+      </figure>
       <div class="card-body">
         <h2 class="card-title">{{ song.trackName }}</h2>
         <ul class="list-none">
-          <li>Artist Name: {{ song.artistName }}</li>
-          <li>Description: {{ song.description }}</li>
+          <li class="flex justify-start items-center">
+            <h3 class="flex-initial text-lg mr-2">Artist Name:</h3>
+            <p class="flex-initial">{{ song.artistName }}</p>
+          </li>
+          <li v-show="song.description != ''" class="flex flex-col w-96">
+            <h3 class="flex-initial text-lg">Description:</h3>
+            <p class="flex-initial">{{ song.description }}</p>
+          </li>
         </ul>
-        <audio controls>
+        <audio controls class="my-2">
           <source :src="audioUrl" :type="format" />
         </audio>
         <div class="card-actions justify-center">
