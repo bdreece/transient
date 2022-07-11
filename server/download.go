@@ -52,7 +52,7 @@ func NewDownloadHandler(db *bolt.DB, verbose *bool) *DownloadHandler {
 }
 
 func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var song *Song = new(Song)
+	var song SongStore
 	id := mux.Vars(r)["id"]
 
 	if err := h.db.Update(func(tx *bolt.Tx) error {
@@ -97,7 +97,15 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	data, err := json.Marshal(song)
+	data, err := song.Data()
+	if err != nil {
+		if *h.verbose {
+			log.Printf("Unexpected error loading song data from disk: %v\n", err)
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	body, err := json.Marshal(data)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error marshalling song JSON: %v\n", err)
@@ -105,5 +113,5 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Write(data)
+	w.Write(body)
 }

@@ -45,10 +45,11 @@ func NewUploadHandler(db *bolt.DB, verbose *bool) *UploadHandler {
 func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var (
 		body   []byte
-		length int    = 0
 		buf    []byte = make([]byte, 1024)
 		err    error
+		length int = 0
 		n      int
+		song   SongData
 	)
 
 	if r.Header["Content-Type"][0] != "application/json" {
@@ -76,23 +77,40 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Body is valid JSON
-	if !json.Valid(body[:length]) {
+	err = json.Unmarshal(body[:length], &song)
+	if err != nil {
 		if *h.verbose {
-			log.Println("Request body is not valid JSON!")
+			log.Printf("Unexpected error unmarshaling request body: %v\n", err)
 		}
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// Add body contents to DB with new CUID
+	// Store contents of request body on disk
 	id := cuid.New()
+	store, err := song.Store(id)
+	if err != nil {
+		if *h.verbose {
+			log.Printf("Unexpected error storing files to disk: %v\n", err)
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Marshal song storage meta to binary
+	body, err = json.Marshal(store)
+	if err != nil {
+		if *h.verbose {
+			log.Printf("Unexpected error marshaling song store to JSON: %v\n", err)
+		}
+	}
+
+	// Add body contents to DB with new CUID
 	if err = h.db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(BUCKET))
 		if err != nil {
 			return err
 		}
-		if err = bucket.Put([]byte(id), body[:length]); err != nil {
+		if err = bucket.Put([]byte(id), body); err != nil {
 			return err
 		}
 		return nil
