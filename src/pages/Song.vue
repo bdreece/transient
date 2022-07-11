@@ -1,11 +1,11 @@
 <script lang="ts">
 import { defineComponent, Ref, ref } from 'vue';
-import { dataURLToBlob } from 'blob-util';
+import { createObjectURL, dataURLToBlob } from 'blob-util';
 import { extension } from 'mime-types';
 
 import Spinner from '../components/Spinner.vue';
 
-import type { File, Song } from '../scripts/api.client';
+import type { Song } from '../scripts/api.client';
 import download from '../scripts/download.client';
 
 export default defineComponent({
@@ -29,27 +29,38 @@ export default defineComponent({
 
     const status = ref('');
 
+    const audioUrl = () => {
+      return createObjectURL(dataURLToBlob(song.value.audio.data));
+    };
+
+    const imageUrl = () => {
+      return createObjectURL(dataURLToBlob(song.value.image?.data ?? ''));
+    };
+
+    const filename = () => {
+      const { data } = song.value.audio;
+      const begin = data.indexOf(':') + 1;
+      const end = data.indexOf(';') - 1;
+      const format = data.slice(begin, end);
+      const ext = extension(format);
+      if (ext) {
+        return `${song.value.trackName}.${extension(format)}`;
+      } else {
+        return song.value.trackName;
+      }
+    };
+
     return {
       song,
       status,
+      audioUrl,
+      imageUrl,
+      filename,
     };
   },
   computed: {
     id() {
       return this.$route.params.id as string;
-    },
-  },
-  methods: {
-    toURL(data: string) {
-      return URL.createObjectURL(dataURLToBlob(data));
-    },
-    toFilename(format: string) {
-      const ext = extension(format);
-      if (ext) {
-        return `${this.song.trackName}.${extension(format)}`;
-      } else {
-        return this.song.trackName;
-      }
     },
   },
   async mounted() {
@@ -72,7 +83,7 @@ export default defineComponent({
       v-else-if="status === 'success'"
       class="flex-initial card w-96 my-8 bg-base-300 shadow-xl"
     >
-      <figure><img :src="toURL(song.image.data)" alt="" /></figure>
+      <figure><img :src="imageUrl" alt="Song Image" /></figure>
       <div class="card-body">
         <h2 class="card-title">{{ song.trackName }}</h2>
         <ul class="list-none">
@@ -80,11 +91,7 @@ export default defineComponent({
           <li>Description: {{ song.description }}</li>
         </ul>
         <div class="card-actions justify-center">
-          <a
-            class="btn btn-primary"
-            :href="toURL(song.audio.data)"
-            :download="toFilename(song.audio.format)"
-          >
+          <a class="btn btn-primary" :href="audioUrl" :download="filename">
             Download
           </a>
         </div>
