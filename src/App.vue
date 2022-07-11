@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 /* Transient - A temporary audio file sharing service
  * Copyright (C) 2022 Brian Reece
  *
@@ -15,34 +15,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import { ref, defineComponent, provide } from 'vue';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
-export default {
-  components: {
-    navbar: Navbar,
-    foot: Footer,
-  },
-  data() {
-    return {
-      theme: 'synthwave',
-    };
-  },
-  methods: {
-    toggleTheme() {
-      this.theme = this.theme === 'synthwave' ? 'cyberpunk' : 'synthwave';
-    },
-  },
-  provide() {
-    return {
-      toggleTheme: this.toggleTheme,
-    };
-  },
+
+const theme = ref('synthwave');
+const toggleTheme = () => {
+  theme.value = theme.value === 'synthwave' ? 'cyberpunk' : 'synthwave';
 };
+
+provide('toggleTheme', toggleTheme);
+
+export default defineComponent({
+  components: {
+    Navbar,
+    Footer,
+  },
+});
 </script>
 
 <template>
   <div :data-theme="theme">
-    <navbar />
-    <foot />
+    <Navbar />
+    <Footer />
   </div>
 </template>

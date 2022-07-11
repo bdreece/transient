@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 /* Transient - A temporary audio file sharing service
  * Copyright (C) 2022 Brian Reece
  *
@@ -15,11 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-export default {
-  data() {
-    return {};
-  },
-};
+import { defineComponent } from 'vue';
+export default defineComponent({});
 </script>
 
 <template>

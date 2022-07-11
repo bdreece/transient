@@ -1,3 +1,54 @@
+<script setup lang="ts">
+import cuid from 'cuid';
+import { ref } from 'vue';
+
+const API_HOST = 'localhost:8080';
+
+const trackName = ref('');
+const artistName = ref('');
+const description = ref('');
+const file = ref('');
+const format = ref('');
+const remainingPlays = ref(1);
+
+const handleFileChange = async ({ target }: Event) => {
+  const files = (target as HTMLInputElement).files;
+  if (files) {
+    const data = await files[0].arrayBuffer();
+    format.value = files[0].type;
+    file.value = Buffer.from(data).toString('base64');
+  }
+};
+
+const handleUpload = async () => {
+  const id = cuid.slug();
+  const response = await fetch(`http://${API_HOST}/api/songs/${id}`, {
+    method: 'OPTIONS',
+    headers: {
+      'Access-Control-Request-Method': 'POST',
+      Origin: origin,
+    },
+    body: JSON.stringify({
+      trackName: trackName.value,
+      artistName: artistName.value,
+      description: description.value,
+      file: file.value,
+      format: format.value,
+      remainingPlays: remainingPlays.value,
+    }),
+  });
+  if (response.ok) {
+    // TODO: File uploaded successfully, display success modal
+    const data = await response.text();
+    const { id } = JSON.parse(data);
+    console.log(`File uploaded successfully: ${id}`);
+  } else {
+    // TODO: File failed to upload, display failure modal
+    console.log('File failed to upload');
+  }
+};
+</script>
+
 <template>
   <h1 class="text-3xl heading mt-4 flex justify-center">Upload</h1>
   <div class="flex justify-center">
@@ -14,7 +65,7 @@
             type="text"
             placeholder="Insert track name here"
             class="input input-bordered w-full max-w-xs"
-            :value="trackName"
+            v-model="trackName"
             required
           />
         </div>
@@ -29,7 +80,7 @@
             type="text"
             placeholder="Insert artist name here"
             class="input input-bordered w-full max-w-xs"
-            :value="artistName"
+            v-model="artistName"
             required
           />
         </div>
@@ -37,7 +88,7 @@
           <label class="label"> Track Description: </label>
           <textarea
             class="textarea textarea-bordered w-full max-w-xs"
-            :value="description"
+            v-model="description"
           />
         </div>
         <div class="form-control">
@@ -51,7 +102,7 @@
             type="file"
             accept="audio/*"
             class="input input-bordered w-full max-w-xs"
-            @change="handleFileChange($event.target)"
+            @change="handleFileChange($event)"
             required
           />
           <label class="label">
@@ -69,6 +120,7 @@
             step="1"
             min="1"
             class="input input-bordered w-full max-w-xs"
+            v-model="remainingPlays"
             required
           />
         </div>
@@ -85,59 +137,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import cuid from 'cuid';
-const API_HOST = 'localhost:8080';
-export default {
-  data() {
-    return {
-      trackName: '',
-      artistName: '',
-      description: '',
-      file: {},
-      expirationDate: 'YYYY-MM-DD',
-      maxPlays: 1,
-    };
-  },
-  methods: {
-    handleFileChange(target: HTMLInputElement) {
-      const files = target.files;
-      if (files) {
-        this.file = files[0];
-      }
-    },
-    async handleUpload() {
-      const id = cuid.slug();
-      const optResponse = await fetch(`http://${API_HOST}/api/songs/${id}`, {
-        method: 'OPTIONS',
-        headers: {
-          'Access-Control-Request-Method': 'POST',
-          Origin: origin,
-        },
-      });
-      if (optResponse.ok) {
-        // TODO: File uploaded successfully, display success modal
-        console.log('File uploaded successfully');
-        const response = await fetch(`https://${API_HOST}/api/songs/${id}`, {
-          method: 'POST',
-          body: JSON.stringify({
-            trackName: this.trackName,
-            artistName: this.artistName,
-            audio: await (<File>this.file).arrayBuffer(),
-            format: (<File>this.file).type,
-            expiration: this.expirationDate,
-            maxPlays: this.maxPlays,
-          }),
-        });
-        if (response.ok) {
-          console.log('File uploaded successfully');
-        }
-      } else {
-        // TODO: File failed to upload, display failure modal
-        console.log('File failed to upload');
-      }
-    },
-  },
-};
-</script>
