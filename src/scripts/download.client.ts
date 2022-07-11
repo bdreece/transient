@@ -11,7 +11,7 @@ const download = async (id: string) => {
   if (response.status === 200) {
     console.log('Successfully downloaded song');
     const song: Song = await response.json();
-    console.log(`Song: ${song}`);
+    console.log({ song });
     return song;
   } else {
     console.log('Error downloading song');
