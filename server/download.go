@@ -66,7 +66,7 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return SongNotFound{}
 		}
 		// Unmarshal into Song
-		if err = json.Unmarshal(data, song); err != nil {
+		if err = json.Unmarshal(data, &song); err != nil {
 			return err
 		}
 
