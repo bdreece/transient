@@ -32,7 +32,8 @@ import (
 const BUCKET = "songs"
 
 func corsHandleFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header["Origin"][0])
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Access-Control-Max-Age", "86400")
 
 }
