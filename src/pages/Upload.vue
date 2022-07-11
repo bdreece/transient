@@ -17,8 +17,8 @@
  */
 import { Buffer } from 'buffer';
 import { defineComponent, ref, Ref } from 'vue';
-import { Song } from '../scripts/api.client';
 
+import type { Song } from '../scripts/api.client';
 import upload from '../scripts/upload.client';
 
 export default defineComponent({
@@ -49,8 +49,15 @@ export default defineComponent({
         trackName,
         artistName,
         audio: { data, format },
+        remainingPlays,
       } = this.song;
-      return trackName != '' && artistName != '' && data != '' && format != '';
+      return (
+        trackName != '' &&
+        artistName != '' &&
+        data != '' &&
+        format != '' &&
+        remainingPlays > 0
+      );
     },
   },
   methods: {
@@ -59,8 +66,21 @@ export default defineComponent({
 
       if (files) {
         const data = await files[0].text();
-        this.song.audio.format = files[0].type;
-        this.song.audio.data = Buffer.from(data).toString('base64');
+        this.song.audio = {
+          format: files[0].type,
+          data: Buffer.from(data).toString('base64'),
+        };
+      }
+    },
+    async handleImageChange({ target }: Event) {
+      const files = (target as HTMLInputElement).files;
+
+      if (files) {
+        const data = await files[0].text();
+        this.song.image = {
+          format: files[0].type,
+          data: Buffer.from(data).toString('base64'),
+        };
       }
     },
     async handleUpload() {
@@ -111,6 +131,20 @@ export default defineComponent({
             class="textarea textarea-bordered w-full max-w-xs"
             v-model="song.description"
           />
+        </div>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text"> Image File: </span>
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            class="input input-bordered w-full max-w-xs"
+            @change="handleImageChange($event)"
+          />
+          <label class="label">
+            <span class="label-text-alt">(*.jpg, *.png, *.gif, *.tiff)</span>
+          </label>
         </div>
         <div class="form-control">
           <label class="label">
