@@ -23,6 +23,7 @@ import (
 	"os"
 
 	"github.com/vincent-petithory/dataurl"
+	"github.com/lucsky/cuid"
 )
 
 type FileData struct {
@@ -49,7 +50,12 @@ func (d FileData) Store(filePath *string, id string, verbose *bool) (*FileStore,
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s.%s", *filePath, id, ext[0])
+	path := ""
+	if len(ext) > 0 {
+		path = fmt.Sprintf("%s/%s.%s", *filePath, id, ext[0])
+	} else {
+		path = fmt.Sprintf("%s/%s-%s", *filePath, id, cuid.Slug())
+	}
 	err = os.WriteFile(path, data.Data, 0744)
 	if err != nil {
 		return nil, err
