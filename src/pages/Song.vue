@@ -9,8 +9,10 @@ export default defineComponent({
     const song: Ref<Song> = ref({
       trackName: '',
       artistName: '',
-      file: '',
-      format: '',
+      audio: {
+        data: '',
+        format: '',
+      },
       remainingPlays: 0,
     });
 
@@ -27,8 +29,12 @@ export default defineComponent({
   },
   computed: {
     hasSong() {
-      const { trackName, artistName, file, format } = this.song;
-      return trackName != '' && artistName != '' && file != '' && format != '';
+      const {
+        trackName,
+        artistName,
+        audio: { data, format },
+      } = this.song;
+      return trackName != '' && artistName != '' && data != '' && format != '';
     },
   },
 });
