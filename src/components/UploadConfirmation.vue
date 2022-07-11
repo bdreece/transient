@@ -44,11 +44,13 @@ export default defineComponent({
     <div v-else-if="status === 'success'" class="modal-box">
       <h3 class="font-bold text-lg">Success</h3>
       <p class="py-4">Your track has been successfully uploaded!</p>
-      <div class="m-4 py-2 border rounded">
+      <div class="m-4 p-2 border rounded">
         {{ `https://transient.bdreece.dev/songs/${id}` }}
       </div>
       <div class="modal-action">
-        <a class="btn btn-primary" :href="`/songs/${id}`">View your Track</a>
+        <router-link class="btn btn-primary" :to="`/songs/${id}`">
+          View your Track
+        </router-link>
       </div>
     </div>
     <div v-else class="modal-box">
