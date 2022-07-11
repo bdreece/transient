@@ -8,7 +8,7 @@ const download = async (id: string) => {
     },
   });
 
-  if (response.ok) {
+  if (response.status === 200) {
     console.log('Successfully downloaded song');
     const song: Song = await response.json();
     console.log(`Song: ${song}`);
