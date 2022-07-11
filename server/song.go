@@ -28,7 +28,7 @@ type FileData struct {
 
 func (d FileData) Store(filePath *string, id string, fileType string) (*FileStore, error) {
 	path := fmt.Sprintf("%s/%s-%s", *filePath, id, fileType)
-	err := os.WriteFile(path, d.Data, 0666)
+	err := os.WriteFile(path, d.Data, 0744)
 	if err != nil {
 		return nil, err
 	}

@@ -54,6 +54,11 @@ func NewDownloadHandler(db *bolt.DB, verbose *bool) *DownloadHandler {
 func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var song SongStore
 	id := mux.Vars(r)["id"]
+
+	if *h.verbose {
+		log.Printf("Incoming download request for song: %s\n", id)
+	}
+
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 
 	if err := h.db.Update(func(tx *bolt.Tx) error {
@@ -65,6 +70,9 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data := bucket.Get([]byte(id))
 		if data == nil {
 			return SongNotFound{}
+		}
+		if *h.verbose {
+			log.Println("Found song!")
 		}
 		// Unmarshal into Song
 		if err = json.Unmarshal(data, &song); err != nil {
@@ -80,11 +88,20 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Put updated bytes in DB
 		if song.RemainingPlays == 0 {
+			if *h.verbose {
+				log.Println("Remaining plays exhausted, deleting song")
+			}
 			if err = bucket.Delete([]byte(id)); err != nil {
 				return err
 			}
-		} else if err = bucket.Put([]byte(id), data); err != nil {
-			return err
+		} else {
+			err = bucket.Put([]byte(id), data)
+			if err != nil {
+				return err
+			}
+			if *h.verbose {
+				log.Println("Decremented remaining plays in DB")
+			}
 		}
 		return nil
 	}); err != nil {
@@ -105,6 +122,9 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+	if *h.verbose {
+		log.Println("Loaded song from disk")
 	}
 	body, err := json.Marshal(data)
 	if err != nil {

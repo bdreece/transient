@@ -63,7 +63,7 @@ func main() {
 	}
 
 	// Open database
-	db, err := bolt.Open(*dbPath, 0666, nil)
+	db, err := bolt.Open(*dbPath, 0744, nil)
 	if err != nil {
 		if *verbose {
 			log.Printf("Failed to open database file: %v\n", err)
@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// Create data dir if not exists
-	err = os.MkdirAll(*filePath, 0666)
+	err = os.MkdirAll(*filePath, 0744)
 	if err != nil {
 		if *verbose {
 			log.Printf("Failed to create data directory: %v\n", err)

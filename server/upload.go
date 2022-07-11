@@ -54,6 +54,10 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		song   SongData
 	)
 
+	if *h.verbose {
+		log.Println("Incoming request for song upload")
+	}
+
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 
 	if r.Header["Content-Type"][0] != "application/json" {
@@ -90,6 +94,10 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *h.verbose {
+		log.Println("Successfully read and parsed request body")
+	}
+
 	// Store contents of request body on disk
 	id := cuid.New()
 	store, err := song.Store(h.filePath, id)
@@ -98,6 +106,10 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Unexpected error storing files to disk: %v\n", err)
 		}
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	if *h.verbose {
+		log.Println("Successfully stored song data to disk")
 	}
 
 	// Marshal song storage meta to binary
@@ -124,6 +136,10 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	if *h.verbose {
+		log.Println("Successfully put song meta in DB")
 	}
 
 	// Marshal response JSON containing CUID
