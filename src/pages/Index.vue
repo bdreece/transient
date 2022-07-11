@@ -38,6 +38,7 @@ export default defineComponent({});
       </div>
     </div>
     <div class="grid grid-cols-2 steps steps-vertical mx-56">
+      <!-- TODO: Fix this for mobile -->
       <div id="get-started" class="step">Upload</div>
       <p class="my-8">
         Visit the
