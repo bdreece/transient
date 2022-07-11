@@ -27,6 +27,8 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+const DATA_PATH string = "/var/data/transient"
+
 func main() {
 	// Configure command-line arguments
 	parser := argparse.NewParser("server", "Transient server application")
@@ -56,6 +58,15 @@ func main() {
 	if err != nil {
 		if *verbose {
 			log.Printf("Failed to open database file: %v\n", err)
+		}
+		os.Exit(1)
+	}
+
+	// Create data dir if not exists
+	err = os.MkdirAll(DATA_PATH, 0666)
+	if err != nil {
+		if *verbose {
+			log.Printf("Failed to create data directory: %v\n", err)
 		}
 		os.Exit(1)
 	}
