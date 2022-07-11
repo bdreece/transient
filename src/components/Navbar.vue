@@ -18,11 +18,6 @@
 import { defineComponent } from 'vue';
 export default defineComponent({
   inject: ['toggleTheme'],
-  methods: {
-    toggleTheme() {
-      this.toggleTheme();
-    },
-  },
 });
 </script>
 
