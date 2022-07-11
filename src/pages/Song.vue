@@ -18,14 +18,12 @@ export default defineComponent({
       song,
     };
   },
-  methods: {
-    async handleDownload() {
-      const { id } = this.$route.params;
-      const response = await download(id as string);
-      if (response) {
-        this.song = response;
-      }
-    },
+  async mounted() {
+    const { id } = this.$route.params;
+    const response = await download(id as string);
+    if (response) {
+      this.song = response;
+    }
   },
   computed: {
     hasSong() {
