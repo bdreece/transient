@@ -51,7 +51,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err    error
 		length int = 0
 		n      int
-		song   SongData
+		song   Song
 	)
 
 	if *h.verbose {
@@ -100,7 +100,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Store contents of request body on disk
 	id := cuid.Slug()
-	store, err := song.Store(h.filePath, id, h.verbose)
+	err := song.Store(h.filePath, id, h.verbose)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error storing files to disk: %v\n", err)
@@ -113,7 +113,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Marshal song storage meta to binary
-	body, err = json.Marshal(store)
+	body, err = json.Marshal(song)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error marshaling song store to JSON: %v\n", err)

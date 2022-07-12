@@ -31,23 +31,24 @@ type FileData struct {
 	Format string `json:"format"`
 }
 
-func (d FileData) Store(filePath *string, id string, verbose *bool) (*FileStore, error) {
+func storeFile(url string, filePath *string, id string, verbose *bool) (string, error) {
 	// Decode data URL
-	data, err := dataurl.DecodeString(d.Data)
+	data, err := dataurl.DecodeString(url)
 	if err != nil {
 		if *verbose {
 			log.Printf("Failed to decode file data: %v\n", err)
 		}
-		return nil, err
+		return "", err
 	}
 
+	format := data.MediaType.ContentType((
 	// Get file extension
-	ext, err := mime.ExtensionsByType(data.MediaType.ContentType())
+	ext, err := mime.ExtensionsByType(format)
 	if err != nil {
 		if *verbose {
 			log.Printf("Failed to get file extensions for type: %v\n", err)
 		}
-		return nil, err
+		return "", err
 	}
 
 	path := ""
@@ -58,119 +59,74 @@ func (d FileData) Store(filePath *string, id string, verbose *bool) (*FileStore,
 	}
 	err = os.WriteFile(path, data.Data, 0744)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &FileStore{
-		Path:   path,
-		Format: d.Format,
-	}, nil
+	return path, nil
 }
 
-type SongData struct {
+type Song struct {
 	TrackName      string   `json:"trackName"`
 	ArtistName     string   `json:"artistName"`
 	Description    string   `json:"description"`
-	Image          FileData `json:"image"`
-	Audio          FileData `json:"audio"`
+	Image          string `json:"image"`
+	Audio          string `json:"audio"`
 	RemainingPlays int      `json:"remainingPlays"`
 }
 
-func NewSongData() (s SongData) { return }
+func NewSong() (s Song) { return }
 
-func (s SongData) Store(filePath *string, id string, verbose *bool) (*SongStore, error) {
+func (s *Song) Store(filePath *string, id string, verbose *bool) error {
+	var err error
 	// Store image
-	var (
-		image, audio *FileStore
-		err          error
-	)
-	if s.Image.Data != "" {
-		image, err = s.Image.Store(filePath, id, verbose)
+	if s.Image != "" {
+		s.Image, err = storeFile(s.Image, filePath, id, verbose)
 		if err != nil {
 			if *verbose {
 				log.Printf("Error storing image data: %v\n", err)
 			}
-			return nil, err
+			return err
 		}
-	} else {
-		image = new(FileStore)
 	}
 
 	// Store audio
-	audio, err = s.Audio.Store(filePath, id, verbose)
+	s.Audio, err = storeFile(s.Audio, filePath, id, verbose)
 	if err != nil {
 		if *verbose {
 			log.Printf("Error storing audio data: %v\n", err)
 		}
-		return nil, err
+		return err
 	}
-
-	return &SongStore{
-		TrackName:      s.TrackName,
-		ArtistName:     s.ArtistName,
-		Description:    s.Description,
-		Image:          *image,
-		Audio:          *audio,
-		RemainingPlays: s.RemainingPlays,
-	}, nil
+	return nil
 }
 
-type FileStore struct {
-	Path   string `json:"path"`
-	Format string `json:"format"`
-}
-
-func (s FileStore) Data() (*FileData, error) {
+func readFile(path string) (string, error) {
 	data, err := os.ReadFile(s.Path)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &FileData{
-		Data:   dataurl.EncodeBytes(data),
-		Format: s.Format,
-	}, nil
+	return dataurl.EncodeBytes(data), nil
 }
 
-type SongStore struct {
-	TrackName      string    `json:"trackName"`
-	ArtistName     string    `json:"artistName"`
-	Description    string    `json:"description"`
-	Image          FileStore `json:"image"`
-	Audio          FileStore `json:"audio"`
-	RemainingPlays int       `json:"remainingPlays"`
-}
+func (s *Song) Data(verbose *bool) error {
+	var err error
 
-func (s SongStore) Data(verbose *bool) (*SongData, error) {
-	var (
-		image, audio *FileData = nil, nil
-		err          error
-	)
-
-	if s.Image.Path != "" {
-		image, err = s.Image.Data()
+	if s.Image != "" {
+		s.Image, err = readFile(s.Image)
 		if err != nil {
 			if *verbose {
 				log.Printf("Failed to load image data: %v\n", err)
 			}
-			return nil, err
+			return err
 		}
-	} else {
-		image = new(FileData)
 	}
-	audio, err = s.Audio.Data()
+	s.Audio, err = readFile(s.Audio)
 	if err != nil {
 		if *verbose {
 			log.Printf("Failed to load audio data: %v\n", err)
 		}
-		return nil, err
+		return err
 	}
 
-	return &SongData{
-		TrackName:      s.TrackName,
-		ArtistName:     s.ArtistName,
-		Description:    s.Description,
-		Image:          *image,
-		Audio:          *audio,
-		RemainingPlays: s.RemainingPlays,
-	}, nil
+	return nil
 }

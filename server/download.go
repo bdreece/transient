@@ -53,7 +53,7 @@ func NewDownloadHandler(db *bolt.DB, verbose *bool) *DownloadHandler {
 }
 
 func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var song SongStore
+	var song Song
 	id := mux.Vars(r)["id"]
 
 	if *h.verbose {
@@ -87,7 +87,7 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Decrement remaining plays
 		song.RemainingPlays -= 1
 		// Marshal this back into bytes
-		data, err = json.Marshal(song)
+		data, err = json.Marshal(&song)
 		if err != nil {
 			return err
 		}
@@ -122,7 +122,7 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load song data from disk
-	data, err := song.Data(h.verbose)
+	err := song.Data(h.verbose)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error loading song data from disk: %v\n", err)
@@ -135,16 +135,16 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Remove files if exhausted
-	if data.RemainingPlays == 0 {
-		if err = os.Remove(song.Audio.Path); err != nil {
+	if song.RemainingPlays == 0 {
+		if err = os.Remove(song.Audio); err != nil {
 			if *h.verbose {
 				log.Printf("Unexpected error removing audio file: %v\n", err)
 			}
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if song.Image.Path != "" {
-			if err = os.Remove(song.Image.Path); err != nil {
+		if song.Image != "" {
+			if err = os.Remove(song.Image); err != nil {
 				if *h.verbose {
 					log.Printf("Unexpected error removing image file: %v\n", err)
 				}
@@ -154,7 +154,7 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	body, err := json.Marshal(data)
+	body, err := json.Marshal(&song)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error marshalling song JSON: %v\n", err)
