@@ -1,4 +1,4 @@
-# transient
+# [transient](https://transient.bdreece.dev)
 
 [![AGPLv3 License](https://img.shields.io/github/license/bdreece/transient?style=for-the-badge)](https://github.com/bdreece/transient/blob/main/LICENSE)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/bdreece/transient?include_prereleases&style=for-the-badge)](https://github.com/bdreece/transient/releases)
@@ -30,10 +30,10 @@ This can be useful not only for near-release tracks, but also with stems. Upload
 
 ## Screenshots
 
-```html
-<!-- insert screenshots here -->
-```
+Click the homepage image below to view a gallery of the various app views.
+
+[![Demo Screenshot](https://i.imgur.com/dj1osKM.png)](https://imgur.com/a/KkhjdYb)
 
 ## Live Deployment
 
-Transient is not yet ready for deployment, though a link to the production site will be supplied when it is ready.
+You can find the live deployment of this app [here](https://transient.bdreece.dev/)
