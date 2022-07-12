@@ -41,7 +41,7 @@ func storeFile(url string, filePath *string, id string, verbose *bool) (string, 
 		return "", err
 	}
 
-	format := data.MediaType.ContentType((
+	format := data.MediaType.ContentType()
 	// Get file extension
 	ext, err := mime.ExtensionsByType(format)
 	if err != nil {
@@ -100,7 +100,7 @@ func (s *Song) Store(filePath *string, id string, verbose *bool) error {
 }
 
 func readFile(path string) (string, error) {
-	data, err := os.ReadFile(s.Path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}

@@ -100,7 +100,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Store contents of request body on disk
 	id := cuid.Slug()
-	err := song.Store(h.filePath, id, h.verbose)
+	err = song.Store(h.filePath, id, h.verbose)
 	if err != nil {
 		if *h.verbose {
 			log.Printf("Unexpected error storing files to disk: %v\n", err)
