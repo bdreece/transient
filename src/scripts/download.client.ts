@@ -5,7 +5,7 @@ import { API_HOST, Song } from './api.client';
 
 const download = async (
   id: string,
-  progress: (event: ProgressEvent) => void
+  progress?: (event: ProgressEvent) => void
 ) => {
   const options: AxiosRequestConfig = {
     url: `https://${API_HOST}/api/songs/${id}`,
@@ -20,7 +20,7 @@ const download = async (
 
   const response = await axios.request(options);
 
-  return response.status === 200 ? ((await response.data) as Song) : undefined;
+  return response.status === 200 ? response : undefined;
 };
 
 export default download;
