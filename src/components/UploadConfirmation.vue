@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+import { computed, defineComponent, PropType, ref } from 'vue';
 
 import Spinner from './Spinner.vue';
 
@@ -14,7 +14,18 @@ export default defineComponent({
     const id = ref('');
     const status = ref('');
     const show = ref(false);
-    return { id, status, show };
+    const copied = ref(false);
+
+    const link = computed(() => {
+      return `http://${window.location.host}/songs/${id.value}`;
+    });
+
+    const copyLink = () => {
+      navigator.clipboard.writeText(link.value);
+      copied.value = true;
+    };
+
+    return { id, link, status, show, copied, copyLink };
   },
   props: {
     song: {
@@ -45,12 +56,29 @@ export default defineComponent({
       <h3 class="font-bold text-lg">Success</h3>
       <p class="py-4">Your track has been successfully uploaded!</p>
       <div class="m-4 p-2 border rounded">
-        {{ `https://transient.bdreece.dev/songs/${id}` }}
+        {{ link }}
       </div>
-      <div class="modal-action">
+      <div v-show="copied" class="alert alert-success justify-start shadow-lg">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="stroke-current flex-shrink-0 h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span>Copied to clipboard!</span>
+      </div>
+      <div class="modal-action justify-evenly">
         <router-link class="btn btn-primary" :to="`/songs/${id}`">
           View your Track
         </router-link>
+        <button class="btn btn-primary" @click="copyLink">Copy Link</button>
       </div>
     </div>
     <div v-else class="modal-box">
