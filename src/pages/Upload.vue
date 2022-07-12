@@ -15,7 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { defineComponent, ref, Ref } from 'vue';
+
+import { computed, defineComponent, ref, Ref } from 'vue';
 import { blobToDataURL } from 'blob-util';
 
 import UploadConfirmation from '../components/UploadConfirmation.vue';
@@ -26,7 +27,6 @@ export default defineComponent({
     UploadConfirmation,
   },
   setup() {
-    // TODO: Define song defaults
     const song: Ref<Song> = ref({
       trackName: '',
       artistName: '',
@@ -38,37 +38,41 @@ export default defineComponent({
 
     const show = ref(false);
 
-    return {
-      song,
-      show,
-    };
-  },
-  computed: {
-    showUpload() {
-      const { trackName, artistName, audio, remainingPlays } = this.song;
+    const showUpload = computed(() => {
+      const { trackName, artistName, audio, remainingPlays } = song.value;
       return (
         trackName != '' && artistName != '' && audio != '' && remainingPlays > 0
       );
-    },
-  },
-  methods: {
-    async handleAudioChange({ target }: Event) {
+    });
+
+    const handleAudioChange = async ({ target }: Event) => {
       const files = (target as HTMLInputElement).files;
 
       if (files) {
-        this.song.audio = await blobToDataURL(files[0]);
+        song.value.audio = await blobToDataURL(files[0]);
       }
-    },
-    async handleImageChange({ target }: Event) {
+    };
+
+    const handleImageChange = async ({ target }: Event) => {
       const files = (target as HTMLInputElement).files;
 
       if (files) {
-        this.song.image = await blobToDataURL(files[0]);
+        song.value.image = await blobToDataURL(files[0]);
       }
-    },
-    handleUpload() {
-      this.show = true;
-    },
+    };
+
+    const handleUpload = () => {
+      show.value = true;
+    };
+
+    return {
+      song,
+      show,
+      showUpload,
+      handleAudioChange,
+      handleImageChange,
+      handleUpload,
+    };
   },
 });
 </script>
@@ -109,7 +113,9 @@ export default defineComponent({
           />
         </div>
         <div class="form-control">
-          <label class="label"> Track Description: </label>
+          <label class="label">
+            <span class="label-text"> Track Description: </span>
+          </label>
           <textarea
             class="textarea textarea-bordered w-full max-w-xs"
             v-model="song.description"
