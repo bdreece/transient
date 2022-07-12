@@ -16,13 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import Navbar from './components/Navbar.vue';
-import Footer from './components/Footer.vue';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
   components: {
     Navbar,
-    Footer,
   },
   data() {
     return {
@@ -50,6 +48,5 @@ export default defineComponent({
 <template>
   <div :data-theme="theme">
     <Navbar />
-    <Footer />
   </div>
 </template>

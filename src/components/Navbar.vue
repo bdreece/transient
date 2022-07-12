@@ -15,11 +15,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, ref } from 'vue';
+
+import Footer from './Footer.vue';
+
 export default defineComponent({
+  components: {
+    Footer,
+  },
   setup() {
     const toggleTheme: () => void = inject('toggleTheme') ?? (() => {});
-    return { toggleTheme };
+    const searchId = ref('');
+
+    const search = (event: KeyboardEvent) => {
+      if (event.key == 'Enter') {
+        window.location.href = `http://${window.location.host}/songs/${searchId.value}`;
+      }
+    };
+
+    return { toggleTheme, searchId, search };
   },
 });
 </script>
@@ -89,6 +103,7 @@ export default defineComponent({
         </div>
       </div>
       <router-view />
+      <Footer />
     </div>
     <div class="drawer-side">
       <label for="nav-toggle" class="drawer-overlay" />
@@ -110,6 +125,16 @@ export default defineComponent({
             <i class="fa-brands fa-github"></i>
             GitHub
           </a>
+        </li>
+        <li class="flex-1 bg-base-300" />
+        <li>
+          <input
+            class="input input-bordered"
+            type="search"
+            placeholder="Search"
+            v-model="searchId"
+            @keydown="search($event)"
+          />
         </li>
       </ul>
     </div>
