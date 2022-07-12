@@ -1,15 +1,10 @@
-export const API_HOST = 'localhost:8080';
-
-export interface File {
-  data: string;
-  format: string;
-}
+export const API_HOST = 'transient-vhx7xcvtna-ue.a.run.app';
 
 export interface Song {
   trackName: string;
   artistName: string;
   description?: string;
-  image?: File;
-  audio: File;
+  image?: string;
+  audio: string;
   remainingPlays: number;
 }
