@@ -122,6 +122,8 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load song data from disk
+	audioPath := song.Audio
+	imagePath := song.Image
 	err := song.Data(h.verbose)
 	if err != nil {
 		if *h.verbose {
@@ -136,15 +138,15 @@ func (h *DownloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Remove files if exhausted
 	if song.RemainingPlays == 0 {
-		if err = os.Remove(song.Audio); err != nil {
+		if err = os.Remove(audioPath); err != nil {
 			if *h.verbose {
 				log.Printf("Unexpected error removing audio file: %v\n", err)
 			}
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if song.Image != "" {
-			if err = os.Remove(song.Image); err != nil {
+		if imagePath != "" {
+			if err = os.Remove(imagePath); err != nil {
 				if *h.verbose {
 					log.Printf("Unexpected error removing image file: %v\n", err)
 				}

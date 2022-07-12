@@ -1,7 +1,7 @@
 import {API_HOST, Song} from './api.client';
 
 const download = async (id: string) => {
-    const response = await fetch(`${API_HOST}/api/songs/${id}`, {
+    const response = await fetch(`https://${API_HOST}/api/songs/${id}`, {
         headers: {
             'Access-Control-Request-Method': 'GET',
             Origin: origin,
