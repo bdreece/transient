@@ -15,7 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 import { defineComponent, inject, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import Footer from './Footer.vue';
 
@@ -27,9 +29,11 @@ export default defineComponent({
     const toggleTheme: () => void = inject('toggleTheme') ?? (() => {});
     const searchId = ref('');
 
+    const router = useRouter();
+
     const search = (event: KeyboardEvent) => {
       if (event.key == 'Enter') {
-        window.location.href = `http://${window.location.host}/#/songs/${searchId.value}`;
+        router.push(`/songs/${searchId.value}`);
       }
     };
 
