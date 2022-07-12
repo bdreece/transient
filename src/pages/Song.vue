@@ -1,5 +1,23 @@
 <script lang="ts">
-import { computed, defineComponent, Ref, ref } from 'vue';
+/* Transient - A temporary audio file sharing service
+ * Copyright (C) 2022 Brian Reece
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import { computed, defineComponent, nextTick, Ref, ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { createObjectURL, dataURLToBlob } from 'blob-util';
 import { extension } from 'mime-types';
 
@@ -23,9 +41,15 @@ export default defineComponent({
       remainingPlays: 0,
     });
 
+    const router = useRouter();
+    const route = useRoute();
+
     const status = ref('');
     const progress = ref(0);
     const total = ref(0);
+    const shouldRender = ref(true);
+
+    const id = route.params.id as string;
 
     const audioUrl = computed(() => {
       return createObjectURL(dataURLToBlob(song.value.audio));
@@ -52,11 +76,22 @@ export default defineComponent({
         return song.value.trackName;
       }
     });
-    const reloadPage = () => {
-      window.location.reload();
+    const reloadPage = async () => {
+      location.reload();
     };
 
+    onMounted(async () => {
+      const response = await download(id);
+      if (response) {
+        status.value = 'success';
+        song.value = response.data;
+      } else {
+        status.value = 'failure';
+      }
+    });
+
     return {
+      id,
       song,
       status,
       audioUrl,
@@ -65,26 +100,9 @@ export default defineComponent({
       filename,
       progress,
       total,
+      shouldRender,
       reloadPage,
     };
-  },
-  computed: {
-    id() {
-      return this.$route.params.id as string;
-    },
-  },
-  async mounted() {
-    const { id } = this.$route.params;
-    const response = await download(id as string, event => {
-      this.total = event.lengthComputable ? event.total : -1;
-      this.progress = event.loaded;
-    });
-    if (response) {
-      this.status = 'success';
-      this.song = response;
-    } else {
-      this.status = 'failure';
-    }
   },
 });
 </script>
@@ -92,11 +110,6 @@ export default defineComponent({
 <template>
   <div class="flex justify-center">
     <Spinner v-if="status === '' && total <= 0" />
-    <ProgressBar
-      v-else-if="status === '' && total > 0"
-      :max="total"
-      :value="progress"
-    />
     <div
       v-else-if="status === 'success'"
       class="flex-initial card lg:card-side my-8 bg-base-300 shadow-xl"
