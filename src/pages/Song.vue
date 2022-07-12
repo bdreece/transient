@@ -16,31 +16,25 @@ export default defineComponent({
     const song: Ref<Song> = ref({
       trackName: '',
       artistName: '',
-      image: {
-        data: '',
-        format: '',
-      },
-      audio: {
-        data: '',
-        format: '',
-      },
+      image: '',
+      audio: '',
       remainingPlays: 0,
     });
 
     const status = ref('');
 
     const audioUrl = computed(() => {
-      return createObjectURL(dataURLToBlob(song.value.audio.data));
+      return createObjectURL(dataURLToBlob(song.value.audio));
     });
 
     const imageUrl = computed(() => {
-      return song.value.image && song.value.image.data != ''
-        ? createObjectURL(dataURLToBlob(song.value.image.data))
+      return song.value.image && song.value.image != ''
+        ? createObjectURL(dataURLToBlob(song.value.image))
         : 'https://static.vecteezy.com/system/resources/previews/000/196/846/original/realistic-cd-mockup-design-template-vector.jpg';
     });
 
     const format = computed(() => {
-      const { data } = song.value.audio;
+      const data = song.value.audio;
       const begin = data.indexOf(':') + 1;
       const end = data.indexOf(';') - 1;
       return data.slice(begin, end);

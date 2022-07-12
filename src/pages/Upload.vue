@@ -31,14 +31,8 @@ export default defineComponent({
       trackName: '',
       artistName: '',
       description: '',
-      image: {
-        data: '',
-        format: '',
-      },
-      audio: {
-        data: '',
-        format: '',
-      },
+      image: '',
+      audio: '',
       remainingPlays: 0,
     });
 
@@ -51,18 +45,9 @@ export default defineComponent({
   },
   computed: {
     showUpload() {
-      const {
-        trackName,
-        artistName,
-        audio: { data, format },
-        remainingPlays,
-      } = this.song;
+      const { trackName, artistName, audio, remainingPlays } = this.song;
       return (
-        trackName != '' &&
-        artistName != '' &&
-        data != '' &&
-        format != '' &&
-        remainingPlays > 0
+        trackName != '' && artistName != '' && audio != '' && remainingPlays > 0
       );
     },
   },
@@ -71,20 +56,14 @@ export default defineComponent({
       const files = (target as HTMLInputElement).files;
 
       if (files) {
-        this.song.audio = {
-          data: await blobToDataURL(files[0]),
-          format: files[0].type,
-        };
+        this.song.audio = await blobToDataURL(files[0]);
       }
     },
     async handleImageChange({ target }: Event) {
       const files = (target as HTMLInputElement).files;
 
       if (files) {
-        this.song.image = {
-          data: await blobToDataURL(files[0]),
-          format: files[0].type,
-        };
+        this.song.image = await blobToDataURL(files[0]);
       }
     },
     handleUpload() {
