@@ -2,12 +2,13 @@
 import { computed, defineComponent, PropType, ref } from 'vue';
 
 import Spinner from './Spinner.vue';
-
+import ProgressBar from './ProgressBar.vue';
 import { Song } from '../scripts/api.client';
 import upload from '../scripts/upload.client';
 
 export default defineComponent({
   components: {
+    ProgressBar,
     Spinner,
   },
   setup() {
@@ -15,6 +16,8 @@ export default defineComponent({
     const status = ref('');
     const show = ref(false);
     const copied = ref(false);
+    const progress = ref(0);
+    const total = ref(0);
 
     const link = computed(() => {
       return `http://${window.location.host}/songs/${id.value}`;
@@ -25,7 +28,7 @@ export default defineComponent({
       copied.value = true;
     };
 
-    return { id, link, status, show, copied, copyLink };
+    return { id, link, status, show, copied, copyLink, progress, total };
   },
   props: {
     song: {
@@ -35,9 +38,12 @@ export default defineComponent({
   },
   async mounted() {
     this.show = true;
-    const response = await upload(this.song);
+    const response = await upload(this.song, event => {
+      this.total = event.lengthComputable ? event.total : -1;
+      this.progress = event.loaded;
+    });
     if (response) {
-      this.id = response.id;
+      this.id = response.data.id;
       this.status = 'success';
     } else {
       this.status = 'failure';
@@ -49,8 +55,13 @@ export default defineComponent({
 <template>
   <input type="checkbox" id="my-modal" class="modal-toggle" :checked="show" />
   <div class="modal">
-    <div v-if="status === ''" class="modal-box">
+    <div v-if="status === '' && total <= 0" class="modal-box">
       <Spinner />
+    </div>
+    <div v-else-if="status === '' && total > 0" class="modal-box">
+      <h2 class="text-xl">Uploading your track</h2>
+      <p>This may take a few minutes</p>
+      <ProgressBar :max="total" :value="progress" />
     </div>
     <div v-else-if="status === 'success'" class="modal-box">
       <h3 class="font-bold text-lg">Success</h3>

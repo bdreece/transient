@@ -3,6 +3,7 @@ import { computed, defineComponent, Ref, ref } from 'vue';
 import { createObjectURL, dataURLToBlob } from 'blob-util';
 import { extension } from 'mime-types';
 
+import ProgressBar from '../components/ProgressBar.vue';
 import Spinner from '../components/Spinner.vue';
 
 import type { Song } from '../scripts/api.client';
@@ -10,6 +11,7 @@ import download from '../scripts/download.client';
 
 export default defineComponent({
   components: {
+    ProgressBar,
     Spinner,
   },
   setup() {
@@ -22,6 +24,8 @@ export default defineComponent({
     });
 
     const status = ref('');
+    const progress = ref(0);
+    const total = ref(0);
 
     const audioUrl = computed(() => {
       return createObjectURL(dataURLToBlob(song.value.audio));
@@ -48,6 +52,9 @@ export default defineComponent({
         return song.value.trackName;
       }
     });
+    const reloadPage = () => {
+      window.location.reload();
+    };
 
     return {
       song,
@@ -56,6 +63,9 @@ export default defineComponent({
       imageUrl,
       format,
       filename,
+      progress,
+      total,
+      reloadPage,
     };
   },
   computed: {
@@ -63,15 +73,13 @@ export default defineComponent({
       return this.$route.params.id as string;
     },
   },
-  methods: {
-    reloadPage() {
-      window.location.reload();
-    },
-  },
   async mounted() {
     const { id } = this.$route.params;
-    const response = await download(id as string);
-    if (response != undefined) {
+    const response = await download(id as string, event => {
+      this.total = event.lengthComputable ? event.total : -1;
+      this.progress = event.loaded;
+    });
+    if (response) {
       this.status = 'success';
       this.song = response;
     } else {
@@ -83,7 +91,12 @@ export default defineComponent({
 
 <template>
   <div class="flex justify-center">
-    <Spinner v-if="status === ''" />
+    <Spinner v-if="status === '' && total <= 0" />
+    <ProgressBar
+      v-else-if="status === '' && total > 0"
+      :max="total"
+      :value="progress"
+    />
     <div
       v-else-if="status === 'success'"
       class="flex-initial card lg:card-side my-8 bg-base-300 shadow-xl"
