@@ -39,12 +39,6 @@ func main() {
 		Default:  false,
 	})
 
-	port := parser.Int("p", "port", &argparse.Options{
-		Required: false,
-		Help:     "Port over which server is hosted",
-		Default:  8080,
-	})
-
 	filePath := parser.String("f", "files", &argparse.Options{
 		Required: false,
 		Help:     "Path to user file directory",
@@ -62,6 +56,15 @@ func main() {
 		log.Printf("Unexpected error parsing arguments: %v\n", err)
 	}
 
+	// Create data dir if not exists
+	err := os.MkdirAll(*filePath, 0744)
+	if err != nil {
+		if *verbose {
+			log.Printf("Failed to create data directory: %v\n", err)
+		}
+		os.Exit(1)
+	}
+
 	// Open database
 	db, err := bolt.Open(*dbPath, 0744, nil)
 	if err != nil {
@@ -71,17 +74,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create data dir if not exists
-	err = os.MkdirAll(*filePath, 0744)
-	if err != nil {
-		if *verbose {
-			log.Printf("Failed to create data directory: %v\n", err)
-		}
-		os.Exit(1)
-	}
-
 	if *verbose {
 		log.Println("Opened database")
+	}
+
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		port = "8080"
 	}
 	// Setup server
 	srv := setup(db, filePath, port, verbose)

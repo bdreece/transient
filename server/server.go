@@ -38,7 +38,7 @@ func corsHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func setup(db *bolt.DB, filePath *string, port *int, verbose *bool) http.Server {
+func setup(db *bolt.DB, filePath *string, port string, verbose *bool) http.Server {
 	if *verbose {
 		log.Println("Hello, server!")
 	}
@@ -56,12 +56,12 @@ func setup(db *bolt.DB, filePath *string, port *int, verbose *bool) http.Server 
 	router.Use(mux.CORSMethodMiddleware(router))
 
 	if *verbose {
-		log.Println("Configured router")
+		log.Printf("Configured server, hosting on :%s\n", port)
 	}
 
 	return http.Server{
 		Handler:      router,
-		Addr:         fmt.Sprintf(":%d", *port),
+		Addr:         fmt.Sprintf(":%s", port),
 		WriteTimeout: time.Duration(10) * time.Second,
 		ReadTimeout:  time.Duration(10) * time.Second,
 	}
