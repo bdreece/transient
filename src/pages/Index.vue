@@ -16,8 +16,48 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { defineComponent } from 'vue';
-export default defineComponent({});
+import { defineComponent, ref } from 'vue';
+import { useIntersectionObserver } from '@vueuse/core';
+export default defineComponent({
+  setup() {
+    const uploadTarget = ref(null);
+    const configureTarget = ref(null);
+    const shareTarget = ref(null);
+    const uploadTargetIsVisible = ref(false);
+    const configureTargetIsVisible = ref(false);
+    const shareTargetIsVisible = ref(false);
+
+    useIntersectionObserver(
+      uploadTarget,
+      ([{ isIntersecting }], _observerElement) => {
+        uploadTargetIsVisible.value = isIntersecting;
+      }
+    );
+
+    useIntersectionObserver(
+      configureTarget,
+      ([{ isIntersecting }], _observerElement) => {
+        configureTargetIsVisible.value = isIntersecting;
+      }
+    );
+
+    useIntersectionObserver(
+      shareTarget,
+      ([{ isIntersecting }], _observerElement) => {
+        shareTargetIsVisible.value = isIntersecting;
+      }
+    );
+
+    return {
+      uploadTarget,
+      configureTarget,
+      shareTarget,
+      uploadTargetIsVisible,
+      configureTargetIsVisible,
+      shareTargetIsVisible,
+    };
+  },
+});
 </script>
 
 <template>
@@ -29,39 +69,41 @@ export default defineComponent({});
           <p class="py-6">
             Have you ever wanted to share your tracks or stems with other
             artists, but reeled at the idea of releasing them to the general
-            public? Look no further! With <strong>Transient</strong>, you can
-            create temporary, unlisted links to your audio files for others to
-            consume.
+            public?
+          </p>
+          <p class="py-6">
+            Look no further! With <strong>Transient</strong>, you can create
+            temporary, unlisted links to your audio files for others to consume.
           </p>
           <div class="flex justify-center">
-            <a class="btn btn-primary mx-4" href="#get-started">Get Started</a>
-            <router-link class="btn btn-accent mx-4" to="/upload"
-              >Upload Now</router-link
-            >
+            <router-link class="btn btn-primary mx-4" to="upload">
+              Upload Now
+            </router-link>
           </div>
         </div>
       </div>
     </div>
-    <div class="flex flex-col justify-center align-evenly">
-      <ul id="get-started" class="steps sticky top-16 z-50 py-8 bg-base-100">
-        <li class="step step-primary">
-          <a href="#upload"> Upload </a>
+    <div id="get-started" class="flex flex-col justify-center align-evenly">
+      <ul class="steps sticky top-16 z-50 py-8 bg-base-100">
+        <li :class="uploadTargetIsVisible ? 'step step-primary' : 'step'">
+          Upload
         </li>
-        <li class="step step-accent">
-          <a href="#configure"> Configure </a>
+        <li :class="configureTargetIsVisible ? 'step step-accent' : 'step'">
+          Configure
         </li>
-        <li class="step step-success">
-          <a href="#share"> Share </a>
+        <li :class="shareTargetIsVisible ? 'step step-success' : 'step'">
+          Share
         </li>
       </ul>
-      <!-- TODO: Fix this for mobile -->
-      <h2 id="upload" class="flex justify-center text-2xl heading">Upload</h2>
+      <h2 ref="uploadTarget" class="flex justify-center text-2xl heading">
+        Upload
+      </h2>
       <p class="flex justify-center m-12">
         Visit the Upload page to upload your track or stem. Only one audio file
         per upload is supported at the time of writing this. Supported filetypes
         are MP3, WAV, AIFF, AAC, and OGG.
       </p>
-      <h2 id="configure" class="flex justify-center text-2xl heading">
+      <h2 ref="configureTarget" class="flex justify-center text-2xl heading">
         Configure
       </h2>
       <p class="flex justify-center m-12">
@@ -69,7 +111,9 @@ export default defineComponent({});
         maximum plays. Upon exhausting the maximum number of plays, the track
         will be automatically deleted from our database.
       </p>
-      <h2 id="share" class="flex justify-center text-2xl heading">Share</h2>
+      <h2 ref="shareTarget" class="flex justify-center text-2xl heading">
+        Share
+      </h2>
       <p class="flex justify-center m-12">
         Upon successful upload, we will provide you with a link to your track
         that is only valid per the settings provided in the Configuration step.
