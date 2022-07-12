@@ -6,12 +6,13 @@
         "dev": "concurrently 'pnpm dev:client' 'pnpm dev:server'",
         "dev:client": "vite",
         "dev:server": "cd server; go run . -vf files",
-        "build": "vue-tsc --noEmit && vite build && pnpm build:server",
+        "build": "vue-tsc --noEmit && vite build",
         "build:server": "cd server; go build -v -o ../dist/server",
         "preview": "vite preview",
         "test": "jest"
     },
     "dependencies": {
+        "axios": "^0.27.2",
         "blob-util": "^2.0.2",
         "mime-types": "^2.1.35",
         "vue": "^3.2.25",
