@@ -35,9 +35,9 @@ export default defineComponent({
   },
   async mounted() {
     this.show = true;
-    const id = await upload(this.song);
-    if (id) {
-      this.id = id;
+    const response = await upload(this.song);
+    if (response) {
+      this.id = response.id;
       this.status = 'success';
     } else {
       this.status = 'failure';
