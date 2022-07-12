@@ -1,5 +1,9 @@
 import { API_HOST, Song } from './api.client';
 
+interface UploadResponse {
+  id: string;
+}
+
 const upload = async ({
   trackName,
   artistName,
@@ -25,14 +29,7 @@ const upload = async ({
     }),
   });
 
-  if (response.ok) {
-    console.log('File uploaded successfully');
-    const { id } = await response.json();
-    return id;
-  } else {
-    console.log('File failed to upload');
-    return undefined;
-  }
+  return response.ok ? ((await response.json()) as UploadResponse) : undefined;
 };
 
 export default upload;

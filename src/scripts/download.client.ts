@@ -8,15 +8,9 @@ const download = async (id: string) => {
     },
   });
 
-  if (response.status === 200) {
-    console.log('Successfully downloaded song');
-    const song: Song = await response.json();
-    console.log({ song });
-    return song;
-  } else {
-    console.log('Error downloading song');
-    return undefined;
-  }
+  return response.status === 200
+    ? ((await response.json()) as Song)
+    : undefined;
 };
 
 export default download;
