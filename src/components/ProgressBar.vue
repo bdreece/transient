@@ -1,11 +1,10 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent } from 'vue';
 export default defineComponent({
   props: ['max', 'value'],
   setup(props) {
-    const max = ref<number>(props.max);
-    const value = ref<number>(props.value);
-
+    const max = computed(() => props.max);
+    const value = computed(() => props.value);
     return { max, value };
   },
 });
