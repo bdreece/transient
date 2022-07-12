@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -46,7 +47,7 @@ func setup(db *bolt.DB, filePath *string, port string, verbose *bool) http.Serve
 	router := mux.NewRouter()
 	// Main API routes
 	router.Handle("/api/songs", NewUploadHandler(db, filePath, verbose)).Methods(http.MethodPost)
-	router.Handle("/api/songs/{id}", NewDownloadHandler(db, verbose)).Methods(http.MethodGet)
+	router.Handle("/api/songs/{id}", handlers.CompressHandler(NewDownloadHandler(db, verbose))).Methods(http.MethodGet)
 	// CORS routes
 	router.HandleFunc("/api/songs", corsHandleFunc).Methods(http.MethodOptions)
 	router.HandleFunc("/api/songs/{id}", corsHandleFunc).Methods(http.MethodOptions)
