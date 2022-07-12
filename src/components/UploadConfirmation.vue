@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, defineComponent, PropType, ref } from 'vue';
+import { computed, defineComponent, PropType, onMounted, ref } from 'vue';
 
 import Spinner from './Spinner.vue';
 import ProgressBar from './ProgressBar.vue';
@@ -11,7 +11,13 @@ export default defineComponent({
     ProgressBar,
     Spinner,
   },
-  setup() {
+  props: {
+    song: {
+      type: Object as PropType<Song>,
+      required: true,
+    },
+  },
+  setup(props) {
     const id = ref('');
     const status = ref('');
     const show = ref(false);
@@ -28,26 +34,35 @@ export default defineComponent({
       copied.value = true;
     };
 
-    return { id, link, status, show, copied, copyLink, progress, total };
-  },
-  props: {
-    song: {
-      type: Object as PropType<Song>,
-      required: true,
-    },
-  },
-  async mounted() {
-    this.show = true;
-    const response = await upload(this.song, event => {
-      this.total = event.lengthComputable ? event.total : -1;
-      this.progress = event.loaded;
+    const updateProgress = (event: ProgressEvent) => {
+      total.value = event.lengthComputable ? event.total : -1;
+      progress.value = event.loaded;
+    };
+    onMounted(async () => {
+      show.value = true;
+      const response = await upload(props.song, event => {
+        total.value = event.lengthComputable ? event.total : -1;
+        progress.value = event.loaded;
+      });
+      if (response) {
+        id.value = response.data.id;
+        status.value = 'success';
+      } else {
+        status.value = 'failure';
+      }
     });
-    if (response) {
-      this.id = response.data.id;
-      this.status = 'success';
-    } else {
-      this.status = 'failure';
-    }
+
+    return {
+      id,
+      link,
+      status,
+      show,
+      copied,
+      progress,
+      total,
+      updateProgress,
+      copyLink,
+    };
   },
 });
 </script>
