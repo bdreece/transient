@@ -20,7 +20,7 @@ export default defineComponent({
     const total = ref(0);
 
     const link = computed(() => {
-      return `http://${window.location.host}/songs/${id.value}`;
+      return `http://${window.location.host}/#/songs/${id.value}`;
     });
 
     const copyLink = () => {

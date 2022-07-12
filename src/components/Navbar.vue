@@ -29,7 +29,7 @@ export default defineComponent({
 
     const search = (event: KeyboardEvent) => {
       if (event.key == 'Enter') {
-        window.location.href = `http://${window.location.host}/songs/${searchId.value}`;
+        window.location.href = `http://${window.location.host}/#/songs/${searchId.value}`;
       }
     };
 
