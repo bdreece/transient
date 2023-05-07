@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+generator zod {
+  provider = "zod-prisma"
+  output   = "../generated/zod"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Track {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+  artist      String
+
+  expirationRules ExpirationRule[]
+  imageFile       File?            @relation("image")
+  audioFiles      File[]           @relation("audio")
+}
+
+model File {
+  id String @id @default(uuid())
+
+  filename String
+  key      String
+
+  trackAudio   Track?  @relation("audio", fields: [trackAudioId], references: [id], onDelete: Cascade)
+  trackAudioId String?
+  trackImage   Track?  @relation("image", fields: [trackImageId], references: [id], onDelete: Cascade)
+  trackImageId String? @unique
+}
+
+model ExpirationRule {
+  id String @id @default(uuid())
+
+  type    ExpirationRuleType @relation(fields: [typeId], references: [id])
+  typeId  String
+  track   Track?             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId String?
+
+  intValue  Int?
+  boolValue Boolean?
+  dateValue DateTime?
+}
+
+model ExpirationRuleType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  rules ExpirationRule[]
+}
