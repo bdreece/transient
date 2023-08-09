@@ -83,7 +83,7 @@ const Upload: React.FC = () => {
 
       <Card
         title='Upload'
-        className='basis-2/3'
+        className='basis-2/3 z-20'
       >
         <UploadForm {...form} />
       </Card>

@@ -54,13 +54,11 @@ export const UploadForm: React.FC<UploadFormProps> = ({
   const canAdvancePage = (to: 1 | 2 | 'submit') =>
     match(to)
       .with(1, _ => uploading)
-      .with(
-        2,
-        _ => formState.touchedFields.name && formState.touchedFields.artist,
-      )
+      .with(2, _ => formState.dirtyFields.name && formState.dirtyFields.artist)
       .with(
         'submit',
-        _ => (formState.touchedFields.rules?.length ?? 0) > 0 && data && !submitting,
+        _ =>
+          (formState.dirtyFields.rules?.length ?? 0) > 0 && data && !submitting,
       )
       .exhaustive();
 

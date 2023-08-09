@@ -87,9 +87,23 @@ export const ExpirationRuleInput: React.FC<ExpirationRuleInputProps> = ({
                 ? (`rules.${i}.intValue` as const)
                 : (`rules.${i}.dateValue` as const);
 
-              const type: React.HTMLInputTypeAttribute = isPlayBased
-                ? 'number'
-                : 'datetime-local';
+              const inputProps = {
+                ...register(path),
+                ...(isPlayBased
+                  ? {
+                      type: 'number',
+                      min: 1,
+                      step: 1,
+                      max: 999,
+                      value: 1,
+                    }
+                  : {
+                      type: 'date',
+                      min: dayjs().format('YYYY-MM-DD'),
+                      max: dayjs().add(1, 'year').format('YYYY-MM-DD'),
+                      value: dayjs().format('YYYY-MM-DD'),
+                    }),
+              };
 
               const onDelete: React.MouseEventHandler<
                 HTMLButtonElement
@@ -115,8 +129,7 @@ export const ExpirationRuleInput: React.FC<ExpirationRuleInputProps> = ({
                       <TextInput
                         id={id}
                         className='flex-1'
-                        {...register(path)}
-                        type={type}
+                        {...inputProps}
                       />
                       <button
                         className='btn btn-error'
