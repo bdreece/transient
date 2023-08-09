@@ -4,13 +4,11 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
-  binaryTargets = ["native"]
 }
 
 generator zod {
   provider = "zod-prisma"
   output   = "../generated/zod"
-  binaryTargets = ["native"]
 }
 
 datasource db {

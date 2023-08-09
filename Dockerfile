@@ -1,5 +1,9 @@
-FROM node:lts-slim
+FROM node:18-slim
 WORKDIR /usr/src/transient
+
+RUN apt update && \
+    apt upgrade -y && \
+    apt install -y openssl
 
 RUN npm i -g pnpm
 
